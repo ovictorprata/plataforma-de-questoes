@@ -1,0 +1,162 @@
+[
+  {
+    "id": "1",
+    "bloco": "Direito Penal",
+    "enunciado": "Aquele que se acusa, perante a autoridade, de crime inexistente",
+    "alternativas": {
+      "A": "pratica crime de falso testemunho.",
+      "B": "pratica crime de comunicação falsa de crime.",
+      "C": "pratica crime de autoacusação falsa.",
+      "D": "não pratica crime algum, pois não há vítima.",
+      "E": "pratica crime de fraude processual."
+    },
+    "gabarito": "C",
+    "ano": 2025,
+    "imagem_antes": null,
+    "imagem_depois": null
+  },
+  {
+    "id": "2",
+    "bloco": "Direito Penal",
+    "enunciado": "Com intuito de proteger seu filho, João comparece perante a autoridade policial e, falsamente, diz ter praticado o crime que, em verdade, fora praticado por seu filho. João",
+    "alternativas": {
+      "A": "comete falsa comunicação de crime.",
+      "B": "comete falso testemunho, mas não será punido por expressa disposição legal.",
+      "C": "comete falso testemunho.",
+      "D": "não comete crime algum, pois não está descrito expressamente como crime no CP.",
+      "E": "comete autoacusação falsa."
+    },
+    "gabarito": "E",
+    "ano": 2025,
+    "imagem_antes": null,
+    "imagem_depois": null
+  },
+  {
+    "id": "3",
+    "bloco": "Direito Penal",
+    "enunciado": "Nos termos do CP, podem praticar crime de falso testemunho, em processo judicial ou administrativo, inquérito ou juízo arbitral:",
+    "alternativas": {
+      "A": "O advogado, o contador e a testemunha.",
+      "B": "A testemunha, o tradutor e o advogado.",
+      "C": "O réu, a testemunha e o advogado.",
+      "D": "O perito, a testemunha e o tradutor.",
+      "E": "O réu, o promotor e o advogado."
+    },
+    "gabarito": "D",
+    "ano": 2025,
+    "imagem_antes": null,
+    "imagem_depois": null
+  },
+  {
+    "id": "4",
+    "bloco": "Direito Penal",
+    "enunciado": "A respeito dos crimes contra a administração pública, previstos nos artigos 312 a 359, do Código Penal, assinale a alternativa CORRETA.",
+    "alternativas": {
+      "A": "No crime de Fraude processual (art. 347 do CP), se a inovação se destina a produzir efeito em processo penal, ainda que não iniciado, as penas aplicam-se em dobro.",
+      "B": "O crime de tráfico de influência (art. 332 do CP) é próprio de funcionário público.",
+      "C": "O crime de violação de sigilo funcional (art. 325 do CP) só se caracteriza se da revelação resultar prejuízo à Administração Pública.",
+      "D": "O crime de corrupção ativa (art. 333 do CP) só se caracteriza se o ato de ofício, em razão da vantagem oferecida ou prometida, for omitido, praticado ou retardado.",
+      "E": "O crime de desacato (art. 331 do CP) só se caracteriza se o funcionário púbico estiver no exercício da função."
+    },
+    "gabarito": "A",
+    "ano": 2025,
+    "imagem_antes": null,
+    "imagem_depois": null
+  },
+  {
+    "id": "5",
+    "bloco": "Direito Penal",
+    "enunciado": "Sobre os crimes contra a Administração Pública (Arts. 312 a 359 do Código Penal), assinale a alternativa CORRETA.",
+    "alternativas": {
+      "A": "A conduta de extraviar livro oficial de que se tem a guarda em razão do cargo caracteriza o crime de corrupção passiva.",
+      "B": "A conduta de patrocinar interesse privado perante a Administração Pública, valendo-se da qualidade de funcionário público, caracteriza o crime de tráfico de influência.",
+      "C": "A conduta de desobedecer a ordem, ainda que ilegal, de funcionário público caracteriza o crime de desobediência.",
+      "D": "Violação de sigilo funcional é crime punido com reclusão, seja qual for a circunstância.",
+      "E": "Inovar artificialmente em processo administrativo o estado de lugar, com o fim de induzir a erro o juiz, caracteriza crime de fraude processual."
+    },
+    "gabarito": "E",
+    "ano": 2025,
+    "imagem_antes": null,
+    "imagem_depois": null
+  },
+  {
+    "id": "6",
+    "bloco": "Direito Penal",
+    "enunciado": "Nos termos previstos expressamente no Código Penal, é correto afirmar que",
+    "alternativas": {
+      "A": "o crime de corrupção passiva só se consuma com o recebimento do valor solicitado.",
+      "B": "quem trabalha para empresa prestadora de serviço contratada ou conveniada para a execução de atividade típica da Administração Pública equipara-se a funcionário público para os efeitos penais.",
+      "C": "todos os crimes contra administração pública podem ser cometidos por dolo ou culpa.",
+      "D": "a alteração realizada por funcionário de sistema de informações ou programa de informática sem autorização ou solicitação de autoridade competente só será caracterizada como crime se resultar em dano para a Administração Pública ou para o administrado.",
+      "E": "só haverá crime de advocacia administrativa no caso de interesse ilegítimo."
+    },
+    "gabarito": "B",
+    "ano": 2025,
+    "imagem_antes": null,
+    "imagem_depois": null
+  },
+  {
+    "id": "7",
+    "bloco": "Direito Penal",
+    "enunciado": "A respeito dos crimes praticados por particulares, contra a administração pública, assinale a alternativa CORRETA.",
+    "alternativas": {
+      "A": "O crime de usurpação de função pública somente caracteriza-se se o agente, na função usurpada, aufere vantagem.",
+      "B": "O crime de resistência caracteriza-se somente quando há emprego de violência contra funcionário competente para executar ato legal.",
+      "C": "O crime de tráfico de influência prevê aumento de pena se o agente alega que a vantagem solicitada ou exigida é destinada também ao funcionário público.",
+      "D": "O crime de desacato prevê aumento de pena se o funcionário desacatado é da administração pública federal.",
+      "E": "O crime de desobediência é crime apenado com reclusão"
+    },
+    "gabarito": "C",
+    "ano": 2025,
+    "imagem_antes": null,
+    "imagem_depois": null
+  },
+  {
+    "id": "8",
+    "bloco": "Direito Penal",
+    "enunciado": "É crime próprio quanto ao agente:",
+    "alternativas": {
+      "A": "tráfico de influência.",
+      "B": "resistência.",
+      "C": "corrupção ativa.",
+      "D": "usurpação de função pública.",
+      "E": "violação de sigilo funcional."
+    },
+    "gabarito": "E",
+    "ano": 2025,
+    "imagem_antes": null,
+    "imagem_depois": null
+  },
+  {
+    "id": "9",
+    "bloco": "Direito Penal",
+    "enunciado": "Considere o seguinte caso hipotético: “A”, Oficial de Promotoria do MP, arromba a janela de uma repartição, mais precisamente da Receita Federal, e subtrai uma impressora. Nos termos do Código Penal, e apenas com base nas informações do enunciado, é correto afirmar que “A”",
+    "alternativas": {
+      "A": "cometeu o crime de peculato apropriação.",
+      "B": "cometeu o crime corrupção ativa.",
+      "C": "não cometeu peculato",
+      "D": "cometeu o crime peculato furto.",
+      "E": "cometeu peculato desvio."
+    },
+    "gabarito": "C",
+    "ano": 2025,
+    "imagem_antes": null,
+    "imagem_depois": null
+  },
+  {
+    "id": "10",
+    "bloco": "Direito Penal",
+    "enunciado": "Eike Batista da Silva, condenado há vários anos de prisão pela prática de diversos crimes assume, perante a autoridade, a autoria de crime que não cometeu, com o objetivo de livrar outra pessoa da condenação. Em tese, Eike",
+    "alternativas": {
+      "A": "praticou o crime de comunicação falsa de crime.",
+      "B": "não praticou qualquer tipo penal.",
+      "C": "praticou o crime de fraude processual.",
+      "D": "praticou o crime de denunciação caluniosa.",
+      "E": "praticou o crime de auto-acusação falsa."
+    },
+    "gabarito": "E",
+    "ano": 2025,
+    "imagem_antes": null,
+    "imagem_depois": null
+  }
+]
