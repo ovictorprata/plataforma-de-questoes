@@ -28,6 +28,7 @@ export function MultiSelectDropdown<T extends string | number>({
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -38,6 +39,17 @@ export function MultiSelectDropdown<T extends string | number>({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      // O setTimeout garante que o input já foi desenhado na DOM antes do .focus()
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 0);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   const isGrouped = useMemo(() => {
     return options.length > 0 && typeof options[0] === 'object' && 'group' in options[0];
@@ -113,6 +125,7 @@ export function MultiSelectDropdown<T extends string | number>({
             <div className="relative flex items-center shrink-0">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5" />
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="Pesquisar por disciplina ou bloco..."
                 value={searchTerm}
