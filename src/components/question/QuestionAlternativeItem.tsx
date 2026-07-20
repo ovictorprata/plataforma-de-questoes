@@ -30,32 +30,54 @@ export const QuestionAlternativeItem: React.FC<QuestionAlternativeItemProps> = (
   onOpenZoom,
 }) => {
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [touchCurrentX, setTouchCurrentX] = useState<number | null>(null);
-  const SWIPE_THRESHOLD = 50;
+  const [touchCurrentY, setTouchCurrentY] = useState<number | null>(null);
+
+  const SWIPE_THRESHOLD = 60; // 🎯 Sensibilidade do movimento horizontal
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isSubmitted) return;
     setTouchStartX(e.touches[0].clientX);
+    setTouchStartY(e.touches[0].clientY);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartX === null) return;
+    if (touchStartX === null || touchStartY === null) return;
     setTouchCurrentX(e.touches[0].clientX);
+    setTouchCurrentY(e.touches[0].clientY);
   };
 
   const handleTouchEnd = () => {
-    if (touchStartX !== null && touchCurrentX !== null) {
+    if (
+      touchStartX !== null &&
+      touchCurrentX !== null &&
+      touchStartY !== null &&
+      touchCurrentY !== null
+    ) {
       const diffX = touchCurrentX - touchStartX;
-      if (Math.abs(diffX) > SWIPE_THRESHOLD) {
+      const diffY = touchCurrentY - touchStartY;
+
+      // 🎯 Garante que só vai riscar se o gesto for PREDOMINANTEMENTE HORIZONTAL (evita interferir no scroll vertical)
+      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > SWIPE_THRESHOLD) {
         onToggleStrike();
       }
     }
     setTouchStartX(null);
+    setTouchStartY(null);
     setTouchCurrentX(null);
+    setTouchCurrentY(null);
   };
 
-  const swipeOffset =
-    touchStartX !== null && touchCurrentX !== null ? touchCurrentX - touchStartX : 0;
+  // Aplica o deslocamento visual do arrasto apenas se for um gesto horizontal
+  const isHorizontalSwipe =
+    touchStartX !== null &&
+    touchCurrentX !== null &&
+    touchStartY !== null &&
+    touchCurrentY !== null &&
+    Math.abs(touchCurrentX - touchStartX) > Math.abs(touchCurrentY - touchStartY);
+
+  const swipeOffset = isHorizontalSwipe ? touchCurrentX - touchStartX : 0;
 
   // Lógica de estilos/cores
   let borderStyle = 'border-slate-200 hover:border-slate-300 bg-white';
@@ -85,7 +107,18 @@ export const QuestionAlternativeItem: React.FC<QuestionAlternativeItemProps> = (
       className={`group p-3.5 rounded-xl border text-slate-700 transition-colors text-sm cursor-pointer relative select-none touch-pan-y ${borderStyle}`}
     >
       <div className="flex items-center gap-3">
-        {/* Botão de Tesoura + Badge */}
+        {/* Mobile: Badge com a letra da opção (A, B, C...) */}
+        <span
+          className={`sm:hidden w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold border shrink-0 transition-colors ${
+            isSelected
+              ? 'bg-indigo-600 text-white border-indigo-600'
+              : 'bg-slate-50 border-slate-200 text-slate-500'
+          }`}
+        >
+          {chave}
+        </span>
+
+        {/* Desktop: Botão de Tesoura + Badge */}
         <div className="hidden sm:flex items-center gap-2 shrink-0">
           {!isSubmitted ? (
             <button
@@ -137,6 +170,23 @@ export const QuestionAlternativeItem: React.FC<QuestionAlternativeItemProps> = (
             </div>
           )}
         </div>
+
+        {/* Mobile: Botão discreto para riscar em dispositivos móveis */}
+        {!isSubmitted && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleStrike(e);
+            }}
+            title="Riscar alternativa"
+            className={`sm:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 active:bg-slate-100 shrink-0 transition-colors ${
+              isStruck ? 'text-rose-500 bg-rose-50' : ''
+            }`}
+          >
+            <Scissors className="w-3.5 h-3.5" />
+          </button>
+        )}
 
         {/* Ícones de Gabarito */}
         {showFeedback && isSubmitted && chave === gabarito && (
