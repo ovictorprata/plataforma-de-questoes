@@ -1,22 +1,27 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Filter, EyeOff } from 'lucide-react';
 import { MultiSelectDropdown } from './MultiSelectDropdown';
 
 export interface FilterBankSectionProps {
   jsonFilesList: string[];
-  blocosDisponiveis: string[];
+  disciplinasDisponiveis: string[];
+  // Mapeamento para filtrar os blocos conforme a disciplina selecionada
+  questoesMapeamento: Array<{ disciplina: string; bloco?: string }>;
   anosDisponiveis: number[];
-  
+
   tempJsonFilter: string[];
   setTempJsonFilter: React.Dispatch<React.SetStateAction<string[]>>;
+  tempDisciplinaFilter: string[];
+  setTempDisciplinaFilter: React.Dispatch<React.SetStateAction<string[]>>;
   tempBlocoFilter: string[];
   setTempBlocoFilter: React.Dispatch<React.SetStateAction<string[]>>;
   tempAnoFilter: number[];
   setTempAnoFilter: React.Dispatch<React.SetStateAction<number[]>>;
   tempExcludeResolved: boolean;
   setTempExcludeResolved: React.Dispatch<React.SetStateAction<boolean>>;
-  
+
   appliedJsonFilter: string[];
+  appliedDisciplinaFilter: string[];
   appliedBlocoFilter: string[];
   appliedAnoFilter: number[];
   appliedExcludeResolved: boolean;
@@ -26,10 +31,13 @@ export interface FilterBankSectionProps {
 
 export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
   jsonFilesList,
-  blocosDisponiveis,
+  disciplinasDisponiveis,
+  questoesMapeamento,
   anosDisponiveis,
   tempJsonFilter,
   setTempJsonFilter,
+  tempDisciplinaFilter,
+  setTempDisciplinaFilter,
   tempBlocoFilter,
   setTempBlocoFilter,
   tempAnoFilter,
@@ -37,13 +45,28 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
   tempExcludeResolved,
   setTempExcludeResolved,
   appliedJsonFilter,
+  appliedDisciplinaFilter,
   appliedBlocoFilter,
   appliedAnoFilter,
   appliedExcludeResolved,
   onApplyFilters,
 }) => {
+  // Filtra os blocos dinamicamente baseados na(s) disciplina(s) selecionada(s) no filtro temporário
+  const blocosFiltrados = useMemo(() => {
+    let dataset = questoesMapeamento;
+    
+    if (tempDisciplinaFilter.length > 0) {
+      dataset = dataset.filter((q) => tempDisciplinaFilter.includes(q.disciplina));
+    }
+
+    return Array.from(
+      new Set(dataset.map((q) => q.bloco).filter(Boolean) as string[])
+    );
+  }, [questoesMapeamento, tempDisciplinaFilter]);
+
   const hasActiveSelections =
     tempJsonFilter.length > 0 ||
+    tempDisciplinaFilter.length > 0 ||
     tempBlocoFilter.length > 0 ||
     tempAnoFilter.length > 0 ||
     tempExcludeResolved;
@@ -57,6 +80,7 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
 
   const hasPendingChanges =
     !areArraysEqual(tempJsonFilter, appliedJsonFilter) ||
+    !areArraysEqual(tempDisciplinaFilter, appliedDisciplinaFilter) ||
     !areArraysEqual(tempBlocoFilter, appliedBlocoFilter) ||
     !areArraysEqual(tempAnoFilter, appliedAnoFilter) ||
     tempExcludeResolved !== appliedExcludeResolved;
@@ -73,6 +97,7 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
           <button
             onClick={() => {
               setTempJsonFilter([]);
+              setTempDisciplinaFilter([]);
               setTempBlocoFilter([]);
               setTempAnoFilter([]);
               setTempExcludeResolved(false);
@@ -84,11 +109,12 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* 1. Origem / Simulado */}
         <div>
           <label className="block text-xs font-semibold text-slate-400 mb-1">Origem / Simulado</label>
           <MultiSelectDropdown
-            title="Todos os arquivos JSON"
+            title="Todos os JSONs"
             options={jsonFilesList}
             selectedOptions={tempJsonFilter}
             onToggle={(item) => {
@@ -100,11 +126,34 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
           />
         </div>
 
+        {/* 2. Disciplina (NOVO) */}
         <div>
-          <label className="block text-xs font-semibold text-slate-400 mb-1">Bloco / Matéria</label>
+          <label className="block text-xs font-semibold text-slate-400 mb-1">Disciplina</label>
           <MultiSelectDropdown
-            title="Todas as matérias"
-            options={blocosDisponiveis}
+            title="Todas as disciplinas"
+            options={disciplinasDisponiveis}
+            selectedOptions={tempDisciplinaFilter}
+            onToggle={(item) => {
+              setTempDisciplinaFilter((prev) => {
+                const updated = prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item];
+                // Limpa blocos que não pertencem mais à seleção de disciplina
+                setTempBlocoFilter([]);
+                return updated;
+              });
+            }}
+            onClear={() => {
+              setTempDisciplinaFilter([]);
+              setTempBlocoFilter([]);
+            }}
+          />
+        </div>
+
+        {/* 3. Bloco / Matéria (Dinâmico) */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-400 mb-1">Bloco / Assunto</label>
+          <MultiSelectDropdown
+            title="Todos os blocos"
+            options={blocosFiltrados}
             selectedOptions={tempBlocoFilter}
             onToggle={(item) => {
               setTempBlocoFilter((prev) =>
@@ -115,6 +164,7 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
           />
         </div>
 
+        {/* 4. Ano */}
         <div>
           <label className="block text-xs font-semibold text-slate-400 mb-1">Ano</label>
           <MultiSelectDropdown

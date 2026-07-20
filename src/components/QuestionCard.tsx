@@ -13,14 +13,13 @@ interface QuestionCardProps {
 const HIDE_TIP_EVENT = 'simulado_pro_hide_swipe_tip_event';
 
 export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLogged, onReportIssue }) => {
-  if (!question.taxonomia) {
-    console.warn("⚠️ Questão sem taxonomia encontrada:", question);
-  }
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [struckOptions, setStruckOptions] = useState<string[]>([]);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
-  const [showTextoAssociado, setShowTextoAssociado] = useState<boolean>(true);
   
+  // Estado único para o texto de apoio (fechado por padrão em todas as telas)
+  const [showTextoAssociado, setShowTextoAssociado] = useState<boolean>(false);
+
   const [showSwipeTip, setShowSwipeTip] = useState<boolean>(() => {
     return localStorage.getItem('simulado_pro_hide_swipe_tip') !== 'true';
   });
@@ -97,37 +96,48 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
       {/* Cabeçalho Taxonomia */}
       <div className="flex flex-wrap items-center justify-between text-xs font-semibold text-slate-400 gap-2 mb-4">
         <div className="flex items-center gap-1 flex-wrap">
-          <span className="text-indigo-600 font-bold">{question.taxonomia.disciplina}</span>
-          {question.taxonomia.bloco && <span>• {question.taxonomia.bloco}</span>}
-          {question.taxonomia.topico && <span>• {question.taxonomia.topico}</span>}
+          <span className="text-indigo-600 font-bold">
+            {question.taxonomia?.disciplina || 'Geral'}
+          </span>
+          {question.taxonomia?.bloco && <span>• {question.taxonomia.bloco}</span>}
+          {question.taxonomia?.topico && <span>• {question.taxonomia.topico}</span>}
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {question.banca && <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">{question.banca}</span>}
           {question.orgao && <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">{question.orgao}</span>}
-          <span>{question.ano}</span>
+          {question.ano && <span>{question.ano}</span>}
         </div>
       </div>
 
-      {/* Texto Associado */}
+      {/* TEXTO ASSOCIADO / DE APOIO (Accordion Colapsável Unificado para Mobile e Desktop) */}
       {question.texto_associado && (
         <div className="mb-6 border border-slate-200 rounded-xl bg-slate-50/70 overflow-hidden">
           <button
+            type="button"
             onClick={() => setShowTextoAssociado(!showTextoAssociado)}
-            className="w-full flex items-center justify-between p-3.5 text-xs font-bold text-slate-700 hover:bg-slate-100/80 transition-colors border-b border-slate-200/60"
+            className="w-full flex items-center justify-between p-3.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors"
           >
             <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-indigo-600" />
-              <span>{question.texto_associado.titulo || "Texto de Apoio / Interpretação"}</span>
+              <FileText className="w-4 h-4 text-indigo-600 shrink-0" />
+              <span className="truncate">{question.texto_associado.titulo || "Ler Texto de Apoio"}</span>
             </div>
-            {showTextoAssociado ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+            {showTextoAssociado ? (
+              <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+            )}
           </button>
 
           {showTextoAssociado && (
-            <div className="p-4 text-xs md:text-sm text-slate-600 leading-relaxed space-y-3 max-h-96 overflow-y-auto">
+            <div className="p-4 text-xs md:text-sm text-slate-600 leading-relaxed space-y-3 max-h-80 overflow-y-auto border-t border-slate-200/60 bg-white">
               <p className="whitespace-pre-line">{question.texto_associado.conteudo}</p>
               {question.texto_associado.imagem && (
                 <div className="flex justify-center pt-2">
-                  <img src={question.texto_associado.imagem} alt="Suporte do texto associado" className="max-h-64 object-contain rounded-lg border border-slate-200" />
+                  <img
+                    src={question.texto_associado.imagem}
+                    alt="Suporte do texto associado"
+                    className="max-h-64 object-contain rounded-lg border border-slate-200"
+                  />
                 </div>
               )}
             </div>
@@ -145,7 +155,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
 
         {question.enunciado_inicio && (
           <p className="text-slate-800 text-base leading-relaxed font-medium whitespace-pre-line">
-            <span className="text-indigo-600 font-bold mr-1.5">Q{question.id.split('-').pop()}.</span>
+            <span className="text-indigo-600 font-bold mr-1.5">{question.id.toUpperCase()}.</span>
             <MathText text={question.enunciado_inicio} />
           </p>
         )}
@@ -159,7 +169,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
         {question.enunciado_fim && (
           <p className="text-slate-800 text-base leading-relaxed font-medium whitespace-pre-line">
             {!question.enunciado_inicio && (
-              <span className="text-indigo-600 font-bold mr-1.5">Q{question.id.split('-').pop()}.</span>
+              <span className="text-indigo-600 font-bold mr-1.5">{question.id.toUpperCase()}.</span>
             )}
             <MathText text={question.enunciado_fim} />
           </p>
@@ -193,109 +203,104 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
         </div>
       )}
 
-      {/* Alternativas */}
-      {/* Trecho das alternativas dentro do QuestionCard.tsx */}
-{/* Lista de Alternativas */}
-<div className="space-y-2 mb-6">
-  {question.alternativas.map((alt) => {
-    const key = alt.chave;
-    const isStruck = struckOptions.includes(key);
-    const isSelected = selectedKey === key;
-    
-    let borderStyle = 'border-slate-200 hover:border-slate-300 bg-white';
-    if (isSelected) borderStyle = 'border-indigo-600 bg-indigo-50/40';
-    if (isStruck) borderStyle = 'border-slate-100 bg-slate-50/60 opacity-40';
-    
-    if (isSubmitted) {
-      if (key === question.gabarito) {
-        borderStyle = 'border-emerald-500 bg-emerald-50 text-emerald-900 font-medium';
-      } else if (isSelected && key !== question.gabarito) {
-        borderStyle = 'border-rose-500 bg-rose-50 text-rose-900';
-      }
-    }
-
-    const handleSelectOption = () => {
-      if (isSubmitted || isSwipingActive) return;
-
-      // Se a alternativa estiver rasurada, des-rasura e seleciona
-      if (isStruck) {
-        setStruckOptions((prev) => prev.filter((k) => k !== key));
-        setSelectedKey(key);
-        return;
-      }
-
-      setSelectedKey((prev) => (prev === key ? null : key));
-    };
-
-    const isThisSwiping = swipingKey === key;
-    const swipeOffset = (isThisSwiping && touchStartX !== null && touchCurrentX !== null)
-      ? touchCurrentX - touchStartX
-      : 0;
-
-    return (
-      <div
-        key={key}
-        onClick={handleSelectOption}
-        onTouchStart={(e) => handleTouchStart(key, e)}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={() => handleTouchEnd(key)}
-        style={{
-          transform: `translateX(${swipeOffset}px)`,
-          transition: isThisSwiping ? 'none' : 'transform 0.2s ease-out',
-        }}
-        className={`group p-3.5 rounded-xl border text-slate-700 transition-colors text-sm cursor-pointer relative select-none touch-pan-y ${borderStyle}`}
-      >
-        {/* Layout Flexbox: empilhado no mobile (flex-col), em linha no desktop (sm:flex-row) */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3">
+      {/* Lista de Alternativas */}
+      <div className="space-y-2 mb-6">
+        {question.alternativas.map((alt) => {
+          const key = alt.chave;
+          const isStruck = struckOptions.includes(key);
+          const isSelected = selectedKey === key;
           
-          {/* Container Superior no Mobile / Esquerda no Desktop */}
-          <div className="flex items-center gap-2 shrink-0">
-            {/* Mobile: Letra Primeiro / Desktop: Tesoura Primeiro */}
-            <span className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold border shrink-0 transition-colors order-1 sm:order-2 ${
-              isSelected ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 border-slate-200 text-slate-500'
-            }`}>
-              {key}
-            </span>
+          let borderStyle = 'border-slate-200 hover:border-slate-300 bg-white';
+          if (isSelected) borderStyle = 'border-indigo-600 bg-indigo-50/40';
+          if (isStruck) borderStyle = 'border-slate-100 bg-slate-50/60 opacity-40';
+          
+          if (isSubmitted) {
+            if (key === question.gabarito) {
+              borderStyle = 'border-emerald-500 bg-emerald-50 text-emerald-900 font-medium';
+            } else if (isSelected && key !== question.gabarito) {
+              borderStyle = 'border-rose-500 bg-rose-50 text-rose-900';
+            }
+          }
 
-            {!isSubmitted ? (
-              <button
-                onClick={(e) => toggleStrike(key, e)}
-                title="Eliminar alternativa"
-                className={`p-1.5 rounded-md hover:bg-slate-100 transition-colors shrink-0 text-slate-400 order-2 sm:order-1 ${
-                  isStruck ? 'text-rose-500 bg-rose-50' : ''
-                }`}
-              >
-                <Scissors className="w-3.5 h-3.5" />
-              </button>
-            ) : (
-              <div className="w-6 shrink-0 order-2 sm:order-1" />
-            )}
-          </div>
+          const handleSelectOption = () => {
+            if (isSubmitted || isSwipingActive) return;
 
-          {/* Texto / Imagem da Alternativa (Embaixo no mobile, à direita no desktop) */}
-          <div className={`flex-1 leading-relaxed ${isStruck ? 'line-through select-none' : ''}`}>
-            {alt.texto && <MathText text={alt.texto} />}
-            {alt.imagem && (
-              <div className="mt-1 max-w-xs">
-                <img src={alt.imagem} alt={`Alternativa ${key}`} className="max-h-36 object-contain rounded border border-slate-100 bg-white p-1" />
+            if (isStruck) {
+              setStruckOptions((prev) => prev.filter((k) => k !== key));
+              setSelectedKey(key);
+              return;
+            }
+
+            setSelectedKey((prev) => (prev === key ? null : key));
+          };
+
+          const isThisSwiping = swipingKey === key;
+          const swipeOffset = (isThisSwiping && touchStartX !== null && touchCurrentX !== null)
+            ? touchCurrentX - touchStartX
+            : 0;
+
+          return (
+            <div
+              key={key}
+              onClick={handleSelectOption}
+              onTouchStart={(e) => handleTouchStart(key, e)}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={() => handleTouchEnd(key)}
+              style={{
+                transform: `translateX(${swipeOffset}px)`,
+                transition: isThisSwiping ? 'none' : 'transform 0.2s ease-out',
+              }}
+              className={`group p-3.5 rounded-xl border text-slate-700 transition-colors text-sm cursor-pointer relative select-none touch-pan-y ${borderStyle}`}
+            >
+              <div className="flex items-center gap-3">
+                
+                {/* Ícones e Letra (Visíveis no Desktop, ocultos no Mobile) */}
+                <div className="hidden sm:flex items-center gap-2 shrink-0">
+                  {!isSubmitted ? (
+                    <button
+                      onClick={(e) => toggleStrike(key, e)}
+                      title="Eliminar alternativa"
+                      className={`p-1.5 rounded-md hover:bg-slate-100 transition-colors shrink-0 text-slate-400 ${
+                        isStruck ? 'text-rose-500 bg-rose-50' : ''
+                      }`}
+                    >
+                      <Scissors className="w-3.5 h-3.5" />
+                    </button>
+                  ) : (
+                    <div className="w-6 shrink-0" />
+                  )}
+
+                  <span className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold border shrink-0 transition-colors ${
+                    isSelected ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 border-slate-200 text-slate-500'
+                  }`}>
+                    {key}
+                  </span>
+                </div>
+
+                {/* Texto da Alternativa */}
+                <div className={`flex-1 leading-relaxed ${isStruck ? 'line-through select-none' : ''}`}>
+                  {alt.texto && <MathText text={alt.texto} />}
+                  {alt.imagem && (
+                    <div className="mt-1 max-w-xs">
+                      <img src={alt.imagem} alt={`Alternativa ${key}`} className="max-h-36 object-contain rounded border border-slate-100 bg-white p-1" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Feedback */}
+                {isSubmitted && key === question.gabarito && (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                )}
+                {isSubmitted && isSelected && key !== question.gabarito && (
+                  <XCircle className="w-5 h-5 text-rose-600 shrink-0" />
+                )}
               </div>
-            )}
-          </div>
-
-          {/* Feedback de acerto/erro após submeter */}
-          {isSubmitted && key === question.gabarito && (
-            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 self-end sm:self-center" />
-          )}
-          {isSubmitted && isSelected && key !== question.gabarito && (
-            <XCircle className="w-5 h-5 text-rose-600 shrink-0 self-end sm:self-center" />
-          )}
-        </div>
+            </div>
+          );
+        })}
       </div>
-    );
-  })}
-</div>
 
-      {/* Explicação */}
+      {/* Explicação / Gabarito Comentado */}
       <AnimatePresence>
         {isSubmitted && (
           <motion.div
@@ -315,7 +320,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
         )}
       </AnimatePresence>
 
-      {/* Rodapé de Ações */}
+      {/* Rodapé do Card */}
       <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-2">
         <button
           onClick={() => onReportIssue && onReportIssue(question.id)}

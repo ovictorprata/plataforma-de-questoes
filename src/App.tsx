@@ -28,12 +28,14 @@ export const App: React.FC = () => {
   
   // Estados temporários dos Filtros
   const [tempJsonFilter, setTempJsonFilter] = useState<string[]>([]);
+  const [tempDisciplinaFilter, setTempDisciplinaFilter] = useState<string[]>([]);
   const [tempBlocoFilter, setTempBlocoFilter] = useState<string[]>([]);
   const [tempAnoFilter, setTempAnoFilter] = useState<number[]>([]);
   const [tempExcludeResolved, setTempExcludeResolved] = useState<boolean>(false);
 
-  // Estados aplicados
+  // Estados aplicados dos Filtros
   const [appliedJsonFilter, setAppliedJsonFilter] = useState<string[]>([]);
+  const [appliedDisciplinaFilter, setAppliedDisciplinaFilter] = useState<string[]>([]);
   const [appliedBlocoFilter, setAppliedBlocoFilter] = useState<string[]>([]);
   const [appliedAnoFilter, setAppliedAnoFilter] = useState<number[]>([]);
   const [appliedExcludeResolved, setAppliedExcludeResolved] = useState<boolean>(false);
@@ -73,22 +75,29 @@ export const App: React.FC = () => {
     carregarTodasAsQuestoes();
   }, []);
 
-  // Extrai todas as disciplinas e matérias para o seletor de filtros
-  const blocosDisponiveis = useMemo(() => {
+  // Extrai a lista de todas as disciplinas únicas
+  const disciplinasDisponiveis = useMemo(() => {
     return Array.from(
       new Set(
-        masterQuestions.flatMap((q) => [
-          q.taxonomia?.disciplina,
-          q.taxonomia?.bloco,
-        ]).filter(Boolean) as string[]
+        masterQuestions.map((q) => q.taxonomia?.disciplina || 'Geral')
       )
     );
   }, [masterQuestions]);
 
+  // Mapeamento que associa cada questão à sua disciplina e bloco
+  const questoesMapeamento = useMemo(() => {
+    return masterQuestions.map((q) => ({
+      disciplina: q.taxonomia?.disciplina || 'Geral',
+      bloco: q.taxonomia?.bloco,
+    }));
+  }, [masterQuestions]);
+
+  // Extrai os anos disponíveis
   const anosDisponiveis = useMemo(() => {
     return Array.from(new Set(masterQuestions.map((q) => q.ano))).sort((a, b) => b - a);
   }, [masterQuestions]);
 
+  // Aplica a lógica de filtragem nas questões
   const displayQuestions = useMemo(() => {
     if (activeTab === 'simulado') {
       return simuladoQuestions;
@@ -100,9 +109,13 @@ export const App: React.FC = () => {
       if (appliedJsonFilter.length > 0) {
         filtradas = filtradas.filter((q) => appliedJsonFilter.includes(q.origemJson));
       }
+      if (appliedDisciplinaFilter.length > 0) {
+        filtradas = filtradas.filter((q) =>
+          appliedDisciplinaFilter.includes(q.taxonomia?.disciplina || '')
+        );
+      }
       if (appliedBlocoFilter.length > 0) {
         filtradas = filtradas.filter((q) =>
-          appliedBlocoFilter.includes(q.taxonomia?.disciplina || '') ||
           appliedBlocoFilter.includes(q.taxonomia?.bloco || '')
         );
       }
@@ -125,6 +138,7 @@ export const App: React.FC = () => {
     masterQuestions,
     simuladoQuestions,
     appliedJsonFilter,
+    appliedDisciplinaFilter,
     appliedBlocoFilter,
     appliedAnoFilter,
     appliedExcludeResolved,
@@ -133,6 +147,7 @@ export const App: React.FC = () => {
 
   const handleApplyFilters = () => {
     setAppliedJsonFilter(tempJsonFilter);
+    setAppliedDisciplinaFilter(tempDisciplinaFilter);
     setAppliedBlocoFilter(tempBlocoFilter);
     setAppliedAnoFilter(tempAnoFilter);
     setAppliedExcludeResolved(tempExcludeResolved);
@@ -163,10 +178,13 @@ export const App: React.FC = () => {
           <div className="space-y-4">
             <FilterBankSection
               jsonFilesList={jsonFilesList}
-              blocosDisponiveis={blocosDisponiveis}
+              disciplinasDisponiveis={disciplinasDisponiveis}
+              questoesMapeamento={questoesMapeamento}
               anosDisponiveis={anosDisponiveis}
               tempJsonFilter={tempJsonFilter}
               setTempJsonFilter={setTempJsonFilter}
+              tempDisciplinaFilter={tempDisciplinaFilter}
+              setTempDisciplinaFilter={setTempDisciplinaFilter}
               tempBlocoFilter={tempBlocoFilter}
               setTempBlocoFilter={setTempBlocoFilter}
               tempAnoFilter={tempAnoFilter}
@@ -174,6 +192,7 @@ export const App: React.FC = () => {
               tempExcludeResolved={tempExcludeResolved}
               setTempExcludeResolved={setTempExcludeResolved}
               appliedJsonFilter={appliedJsonFilter}
+              appliedDisciplinaFilter={appliedDisciplinaFilter}
               appliedBlocoFilter={appliedBlocoFilter}
               appliedAnoFilter={appliedAnoFilter}
               appliedExcludeResolved={appliedExcludeResolved}
@@ -245,7 +264,7 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      {/* Rodapé com Créditos */}
+      {/* Rodapé */}
       <Footer />
     </div>
   );
