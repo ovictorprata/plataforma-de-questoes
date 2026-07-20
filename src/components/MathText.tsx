@@ -14,15 +14,12 @@ export const MathText: React.FC<MathTextProps> = ({
 }) => {
   if (!text) return null;
 
-  // Define as classes de estilo para o negrito de acordo com a variante
   const getBoldStyle = () => {
-    if (variant === 'enunciado') {
-      // Preto com sublinhado/risco sutil no enunciado
-      return 'font-bold text-black dark:text-white underline decoration-indigo-400 decoration-2 underline-offset-2';
-    }
-    // Apenas negrito para alternativas (e default)
-    return 'font-bold text-black dark:text-white';
-  };
+  if (variant === 'enunciado') {
+    return 'font-bold text-black dark:text-white underline decoration-[var(--color-secondary-subtle)] decoration-2 underline-offset-2';
+  }
+  return 'font-bold text-black dark:text-white';
+};
 
   const renderFormattedText = (rawText: string) => {
     const boldParts = rawText.split(/(\*\*.*?\*\*)/g);

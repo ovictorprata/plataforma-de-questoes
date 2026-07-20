@@ -22,7 +22,12 @@ export const Pagination: React.FC<PaginationProps> = ({
 
   if (totalPages <= 0) return null;
 
-  // Função para gerar as páginas visíveis com reticências (...)
+  // Função auxiliar para mudar página e rolar suavemente para o topo
+  const handlePageSelect = (newPage: number) => {
+    onPageChange(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
     const maxVisiblePages = 5;
@@ -53,10 +58,10 @@ export const Pagination: React.FC<PaginationProps> = ({
     return pages;
   };
 
-  // 1. Apenas o Seletor de Quantidade (Topo)
+  // 1. Apenas o Seletor de Quantidade (SEM CONTAINER DE CARD PRÓPRIO)
   if (mode === 'pageSizeOnly') {
     return (
-      <div className="flex items-center justify-between bg-white border border-slate-200/80 rounded-xl px-4 py-2.5 shadow-sm text-xs text-slate-600">
+      <div className="flex items-center gap-2 text-xs text-slate-600">
         <span className="font-medium">Questões por página:</span>
         <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
           {[5, 10, 20].map((size) => (
@@ -66,7 +71,7 @@ export const Pagination: React.FC<PaginationProps> = ({
               onClick={() => onPageSizeChange(size)}
               className={`px-3 py-1 rounded-md font-semibold transition-colors ${
                 pageSize === size
-                  ? 'bg-indigo-600 text-white shadow-sm'
+                  ? 'bg-indigo-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
               }`}
             >
@@ -78,7 +83,7 @@ export const Pagination: React.FC<PaginationProps> = ({
     );
   }
 
-  // 2. Apenas a Navegação de Páginas Limpa (Rodapé)
+  // 2. Apenas a Navegação de Páginas (Rodapé)
   if (mode === 'navigationOnly') {
     return (
       <div className="flex items-center justify-center gap-1.5 pt-4">
@@ -86,7 +91,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         <button
           type="button"
           disabled={currentPage === 1}
-          onClick={() => onPageChange(currentPage - 1)}
+          onClick={() => handlePageSelect(currentPage - 1)}
           className="p-2 rounded-xl border border-slate-200/80 bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -108,7 +113,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             <button
               key={page}
               type="button"
-              onClick={() => onPageChange(page as number)}
+              onClick={() => handlePageSelect(page as number)}
               className={`min-w-[32px] h-8 px-2 rounded-xl text-xs font-bold transition-all shadow-sm ${
                 isCurrent
                   ? 'bg-indigo-600 text-white'
@@ -124,7 +129,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         <button
           type="button"
           disabled={currentPage === totalPages}
-          onClick={() => onPageChange(currentPage + 1)}
+          onClick={() => handlePageSelect(currentPage + 1)}
           className="p-2 rounded-xl border border-slate-200/80 bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
         >
           <ChevronRight className="w-4 h-4" />
@@ -133,50 +138,5 @@ export const Pagination: React.FC<PaginationProps> = ({
     );
   }
 
-  // 3. Padrão Completo
-  return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border border-slate-200/80 rounded-xl p-3 shadow-sm text-xs text-slate-600">
-      <div className="flex items-center gap-2">
-        <span className="font-medium">Questões por página:</span>
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
-          {[5, 10, 20].map((size) => (
-            <button
-              key={size}
-              type="button"
-              onClick={() => onPageSizeChange(size)}
-              className={`px-3 py-1 rounded-md font-semibold transition-colors ${
-                pageSize === size
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              {size}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          disabled={currentPage === 1}
-          onClick={() => onPageChange(currentPage - 1)}
-          className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-        <span className="px-2 font-medium">
-          Página {currentPage} de {totalPages}
-        </span>
-        <button
-          type="button"
-          disabled={currentPage === totalPages}
-          onClick={() => onPageChange(currentPage + 1)}
-          className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
-  );
+  return null;
 };

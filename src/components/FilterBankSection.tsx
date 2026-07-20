@@ -29,6 +29,11 @@ export interface FilterBankSectionProps {
   appliedExcludeResolved: boolean;
 
   onApplyFilters: () => void;
+
+  // Props de UX (Opção 1)
+  totalQuestions: number;
+  pageSize: number;
+  onPageSizeChange: (size: number) => void;
 }
 
 export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
@@ -52,22 +57,22 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
   appliedAnoFilter,
   appliedExcludeResolved,
   onApplyFilters,
+  totalQuestions,
+  pageSize,
+  onPageSizeChange,
 }) => {
-  // Ordena as disciplinas em ordem alfabética (A-Z) para o dropdown de disciplinas
   const disciplinasOrdenadas = useMemo(() => {
     return [...disciplinasDisponiveis].sort((a, b) =>
       a.localeCompare(b, 'pt-BR', { sensitivity: 'base' })
     );
   }, [disciplinasDisponiveis]);
 
-  // Monta os blocos agrupados por disciplina e ordenados alfabeticamente
   const blocosAgrupados = useMemo<GroupedOption<string>[]>(() => {
     const mapaGrupos: Record<string, string[]> = {};
 
     questoesMapeamento.forEach((q) => {
       if (!q.bloco) return;
 
-      // Se houver disciplina selecionada no filtro temporário, exibe apenas os blocos dela
       if (
         tempDisciplinaFilter.length > 0 &&
         !tempDisciplinaFilter.includes(q.disciplina)
@@ -84,8 +89,6 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
       }
     });
 
-    // Converte o mapa em um array de objetos { group, items }
-    // As disciplinas (group) e blocos (items) serão ordenados alfabeticamente pelo MultiSelectDropdown
     return Object.entries(mapaGrupos).map(([disciplina, blocos]) => ({
       group: disciplina,
       items: blocos.sort((a, b) =>
@@ -116,15 +119,20 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
     tempExcludeResolved !== appliedExcludeResolved;
 
   return (
-    <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-4">
-      <div className="flex items-center justify-between border-b border-slate-50 pb-2">
-        <div className="flex items-center gap-2 text-slate-700 font-bold text-sm">
+    <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+      {/* 1. CABEÇALHO DO CARD (Título + Badge de Total de Questões Encontradas) */}
+      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="flex items-center gap-2.5">
           <Filter className="w-4 h-4 text-indigo-600" />
-          <span>Filtrar Banco de Questões</span>
+          <h3 className="font-bold text-slate-800 text-sm">Filtrar Banco de Questões</h3>
+          <span className="bg-indigo-50 text-indigo-700 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full border border-indigo-100/80">
+            {totalQuestions} {totalQuestions === 1 ? 'questão' : 'questões'}
+          </span>
         </div>
 
         {hasActiveSelections && (
           <button
+            type="button"
             onClick={() => {
               setTempJsonFilter([]);
               setTempDisciplinaFilter([]);
@@ -139,8 +147,8 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
         )}
       </div>
 
+      {/* 2. CAMPOS DE FILTRO */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* 1. Origem / Simulado */}
         <div>
           <label className="block text-xs font-semibold text-slate-400 mb-1">
             Origem / Simulado
@@ -158,7 +166,6 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
           />
         </div>
 
-        {/* 2. Disciplina (Ordenada A-Z) */}
         <div>
           <label className="block text-xs font-semibold text-slate-400 mb-1">
             Disciplina
@@ -172,7 +179,6 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
                 const updated = prev.includes(item)
                   ? prev.filter((i) => i !== item)
                   : [...prev, item];
-                // Limpa blocos selecionados ao alterar disciplinas
                 setTempBlocoFilter([]);
                 return updated;
               });
@@ -184,7 +190,6 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
           />
         </div>
 
-        {/* 3. Bloco / Assunto */}
         <div>
           <label className="block text-xs font-semibold text-slate-400 mb-1">
             Bloco / Assunto
@@ -205,10 +210,8 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
               const itemsStr = groupItems as string[];
               setTempBlocoFilter((prev) => {
                 if (shouldSelectAll) {
-                  // Adiciona os itens da disciplina mantendo os que já estavam selecionados
                   return Array.from(new Set([...prev, ...itemsStr]));
                 } else {
-                  // Remove todos os itens dessa disciplina
                   return prev.filter((i) => !itemsStr.includes(i));
                 }
               });
@@ -217,7 +220,6 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
           />
         </div>
 
-        {/* 4. Ano */}
         <div>
           <label className="block text-xs font-semibold text-slate-400 mb-1">
             Ano
@@ -236,7 +238,8 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
         </div>
       </div>
 
-      <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-h-[42px]">
+      {/* 3. RODAPÉ DO CARD (Checkbox + Botão Aplicar + Seletor de Questões por página) */}
+      <div className="pt-3 border-t border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 min-h-[42px]">
         <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-600 select-none hover:text-slate-800">
           <input
             type="checkbox"
@@ -250,14 +253,38 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
           </div>
         </label>
 
-        {hasPendingChanges && (
-          <button
-            onClick={onApplyFilters}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition-all shadow-sm shrink-0 self-end sm:self-auto animate-in fade-in duration-200"
-          >
-            Aplicar Filtros
-          </button>
-        )}
+        <div className="flex items-center justify-between md:justify-end gap-4">
+          {/* Seletor Integrado no Rodapé do Filtro */}
+          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+            <span>Questões por página:</span>
+            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg">
+              {[5, 10, 20].map((size) => (
+                <button
+                  key={size}
+                  type="button"
+                  onClick={() => onPageSizeChange(size)}
+                  className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
+                    pageSize === size
+                      ? 'bg-indigo-600 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {hasPendingChanges && (
+            <button
+              type="button"
+              onClick={onApplyFilters}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-xs animate-in fade-in duration-200"
+            >
+              Aplicar Filtros
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

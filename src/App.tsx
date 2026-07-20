@@ -29,20 +29,17 @@ export const App: React.FC = () => {
   const [simuladoQuestions, setSimuladoQuestions] = useState<Question[]>([]);
   const [jsonFilesList, setJsonFilesList] = useState<string[]>([]);
   
-  // Estados de Controle do Simulado
   const [simuladoAnswers, setSimuladoAnswers] = useState<Record<string, string>>({});
   const [isSimuladoSubmitted, setIsSimuladoSubmitted] = useState<boolean>(false);
   const [simuladoStartTime, setSimuladoStartTime] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
 
-  // Estados temporários dos Filtros
   const [tempJsonFilter, setTempJsonFilter] = useState<string[]>([]);
   const [tempDisciplinaFilter, setTempDisciplinaFilter] = useState<string[]>([]);
   const [tempBlocoFilter, setTempBlocoFilter] = useState<string[]>([]);
   const [tempAnoFilter, setTempAnoFilter] = useState<number[]>([]);
   const [tempExcludeResolved, setTempExcludeResolved] = useState<boolean>(false);
 
-  // Estados aplicados dos Filtros
   const [appliedJsonFilter, setAppliedJsonFilter] = useState<string[]>([]);
   const [appliedDisciplinaFilter, setAppliedDisciplinaFilter] = useState<string[]>([]);
   const [appliedBlocoFilter, setAppliedBlocoFilter] = useState<string[]>([]);
@@ -164,7 +161,7 @@ export const App: React.FC = () => {
     setSimuladoQuestions(generatedQuestions);
     setSimuladoAnswers({});
     setIsSimuladoSubmitted(false);
-    setSimuladoStartTime(Date.now()); // ⏱️ Marca o início do simulado
+    setSimuladoStartTime(Date.now());
     setElapsedSeconds(0);
     setCurrentPage(1); 
   };
@@ -196,7 +193,6 @@ export const App: React.FC = () => {
       if (!confirma) return;
     }
 
-    // Calcula tempo gasto em segundos
     if (simuladoStartTime) {
       const segundosDecorridos = Math.max(1, Math.round((Date.now() - simuladoStartTime) / 1000));
       setElapsedSeconds(segundosDecorridos);
@@ -204,7 +200,6 @@ export const App: React.FC = () => {
 
     setIsSimuladoSubmitted(true);
 
-    // Registra todas as respostas no histórico/analytics
     simuladoQuestions.forEach((q) => {
       const idComposto = `${(q as QuestionWithSource).origemJson || 'q'}-${q.id}`;
       const resposta = simuladoAnswers[idComposto];
@@ -213,13 +208,17 @@ export const App: React.FC = () => {
       }
     });
 
-    // Leva suavemente ao topo
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleNavigate = (aba: 'banco' | 'simulado' | 'analytics') => {
     setActiveTab(aba);
     setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const indexLastQuestion = currentPage * pageSize;
@@ -234,6 +233,7 @@ export const App: React.FC = () => {
         {/* ABA BANCO DE QUESTÕES */}
         {activeTab === 'banco' && (
           <div className="space-y-4">
+            {/* Seção de Filtros (Com Total de Questões e Seletor de Páginas integrados) */}
             <FilterBankSection
               jsonFilesList={jsonFilesList}
               disciplinasDisponiveis={disciplinasDisponiveis}
@@ -255,22 +255,15 @@ export const App: React.FC = () => {
               appliedAnoFilter={appliedAnoFilter}
               appliedExcludeResolved={appliedExcludeResolved}
               onApplyFilters={handleApplyFilters}
+              totalQuestions={displayQuestions.length}
+              pageSize={pageSize}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1);
+              }}
             />
 
-            {displayQuestions.length > 0 && (
-              <Pagination
-                currentPage={currentPage}
-                totalQuestions={displayQuestions.length}
-                pageSize={pageSize}
-                onPageChange={setCurrentPage}
-                onPageSizeChange={(size) => {
-                  setPageSize(size);
-                  setCurrentPage(1); 
-                }}
-                mode="pageSizeOnly"
-              />
-            )}
-
+            {/* Lista de Questões (Vem imediatamente após os Filtros, sem caixa intermediária) */}
             <div className="space-y-4">
               {currentQuestionsBatchSlice.map((question) => {
                 const idComposto = `${(question as QuestionWithSource).origemJson || 'q'}-${question.id}`;
@@ -284,19 +277,26 @@ export const App: React.FC = () => {
                   />
                 );
               })}
+              
               {displayQuestions.length === 0 && (
-                <p className="text-center text-slate-400 py-12 text-sm">
-                  Nenhuma questão corresponde aos filtros selecionados.
-                </p>
+                <div className="bg-white border border-slate-200/80 rounded-2xl p-12 text-center space-y-2 shadow-sm">
+                  <p className="text-slate-700 font-semibold text-sm">
+                    Nenhuma questão encontrada
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    Tente ajustar ou limpar os filtros para encontrar mais questões.
+                  </p>
+                </div>
               )}
             </div>
 
+            {/* NAVEGAÇÃO ENTRE PÁGINAS (Com Scroll Suave ao topo) */}
             {displayQuestions.length > 0 && (
               <Pagination
                 currentPage={currentPage}
                 totalQuestions={displayQuestions.length}
                 pageSize={pageSize}
-                onPageChange={setCurrentPage}
+                onPageChange={handlePageChange}
                 onPageSizeChange={setPageSize}
                 mode="navigationOnly"
               />
@@ -313,7 +313,6 @@ export const App: React.FC = () => {
             />
           ) : (
             <div className="space-y-4">
-              {/* Cronômetro (Ocultado quando o simulado for finalizado) */}
               {!isSimuladoSubmitted && (
                 <SimuladoTimer
                   key={simuladoQuestions.length}
@@ -322,7 +321,6 @@ export const App: React.FC = () => {
                 />
               )}
 
-              {/* Botão de Novo Simulado (Aparece no topo caso o cronômetro esteja oculto) */}
               {isSimuladoSubmitted && (
                 <div className="flex justify-end">
                   <button
@@ -336,7 +334,6 @@ export const App: React.FC = () => {
                 </div>
               )}
 
-              {/* Quadro Resumo do Simulado com Tempo Médio */}
               {isSimuladoSubmitted && (
                 <SimuladoResultSummary
                   questions={simuladoQuestions}
@@ -345,20 +342,6 @@ export const App: React.FC = () => {
                 />
               )}
 
-              {/* Seletor de Quantidade por página */}
-              <Pagination
-                currentPage={currentPage}
-                totalQuestions={displayQuestions.length}
-                pageSize={pageSize}
-                onPageChange={setCurrentPage}
-                onPageSizeChange={(size) => {
-                  setPageSize(size);
-                  setCurrentPage(1); 
-                }}
-                mode="pageSizeOnly"
-              />
-
-              {/* Lista de Questões do Simulado */}
               <div className="space-y-4">
                 {currentQuestionsBatchSlice.map((question) => {
                   const idComposto = `${(question as QuestionWithSource).origemJson || 'q'}-${question.id}`;
@@ -375,7 +358,6 @@ export const App: React.FC = () => {
                 })}
               </div>
 
-              {/* Card de Finalização do Simulado */}
               {!isSimuladoSubmitted && (
                 <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 mt-6">
                   <span className="text-xs text-slate-500 font-medium">
@@ -393,12 +375,11 @@ export const App: React.FC = () => {
                 </div>
               )}
 
-              {/* Navegação entre páginas */}
               <Pagination
                 currentPage={currentPage}
                 totalQuestions={displayQuestions.length}
                 pageSize={pageSize}
-                onPageChange={setCurrentPage}
+                onPageChange={handlePageChange}
                 onPageSizeChange={setPageSize}
                 mode="navigationOnly"
               />
