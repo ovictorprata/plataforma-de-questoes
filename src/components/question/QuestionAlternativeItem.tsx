@@ -34,7 +34,7 @@ export const QuestionAlternativeItem: React.FC<QuestionAlternativeItemProps> = (
   const [touchCurrentX, setTouchCurrentX] = useState<number | null>(null);
   const [touchCurrentY, setTouchCurrentY] = useState<number | null>(null);
 
-  const SWIPE_THRESHOLD = 60; // 🎯 Sensibilidade do movimento horizontal
+  const SWIPE_THRESHOLD = 60;
 
   const handleTouchStart = (e: React.TouchEvent) => {
     if (isSubmitted) return;
@@ -58,7 +58,6 @@ export const QuestionAlternativeItem: React.FC<QuestionAlternativeItemProps> = (
       const diffX = touchCurrentX - touchStartX;
       const diffY = touchCurrentY - touchStartY;
 
-      // 🎯 Garante que só vai riscar se o gesto for PREDOMINANTEMENTE HORIZONTAL (evita interferir no scroll vertical)
       if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > SWIPE_THRESHOLD) {
         onToggleStrike();
       }
@@ -69,7 +68,6 @@ export const QuestionAlternativeItem: React.FC<QuestionAlternativeItemProps> = (
     setTouchCurrentY(null);
   };
 
-  // Aplica o deslocamento visual do arrasto apenas se for um gesto horizontal
   const isHorizontalSwipe =
     touchStartX !== null &&
     touchCurrentX !== null &&
@@ -79,12 +77,10 @@ export const QuestionAlternativeItem: React.FC<QuestionAlternativeItemProps> = (
 
   const swipeOffset = isHorizontalSwipe ? touchCurrentX - touchStartX : 0;
 
-  // Lógica de estilos/cores
   let borderStyle = 'border-slate-200 hover:border-slate-300 bg-white';
   if (isSelected) borderStyle = 'border-indigo-600 bg-indigo-50/40';
   if (isStruck) borderStyle = 'border-slate-100 bg-slate-50/60 opacity-40';
 
-  // No modo banco (ou no simulado já finalizado), mostra verde e vermelho
   const showFeedback = !isSimulado || isSubmitted;
   if (showFeedback && isSubmitted) {
     if (chave === gabarito) {
@@ -107,7 +103,7 @@ export const QuestionAlternativeItem: React.FC<QuestionAlternativeItemProps> = (
       className={`group p-3.5 rounded-xl border text-slate-700 transition-colors text-sm cursor-pointer relative select-none touch-pan-y ${borderStyle}`}
     >
       <div className="flex items-center gap-3">
-        {/* Mobile: Badge com a letra da opção (A, B, C...) */}
+        {/* Mobile: Apenas o badge da letra (A, B, C...) */}
         <span
           className={`sm:hidden w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold border shrink-0 transition-colors ${
             isSelected
@@ -118,7 +114,7 @@ export const QuestionAlternativeItem: React.FC<QuestionAlternativeItemProps> = (
           {chave}
         </span>
 
-        {/* Desktop: Botão de Tesoura + Badge */}
+        {/* Desktop: Tesoura + Badge (exibido apenas a partir da tela sm) */}
         <div className="hidden sm:flex items-center gap-2 shrink-0">
           {!isSubmitted ? (
             <button
@@ -171,24 +167,7 @@ export const QuestionAlternativeItem: React.FC<QuestionAlternativeItemProps> = (
           )}
         </div>
 
-        {/* Mobile: Botão discreto para riscar em dispositivos móveis */}
-        {!isSubmitted && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleStrike(e);
-            }}
-            title="Riscar alternativa"
-            className={`sm:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 active:bg-slate-100 shrink-0 transition-colors ${
-              isStruck ? 'text-rose-500 bg-rose-50' : ''
-            }`}
-          >
-            <Scissors className="w-3.5 h-3.5" />
-          </button>
-        )}
-
-        {/* Ícones de Gabarito */}
+        {/* Feedback visual de certo/errado */}
         {showFeedback && isSubmitted && chave === gabarito && (
           <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
         )}

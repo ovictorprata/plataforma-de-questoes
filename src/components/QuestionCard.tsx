@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Flag, HelpCircle, X, Send, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Flag, HelpCircle, X, Send, AlertTriangle, CheckCircle2, Lightbulb } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Question } from '../types/question';
 
@@ -76,17 +76,14 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, questionId }
   };
 
   return (
-    /* 🎯 1. Clicar no overlay escuro chama o onClose() */
     <div
       onClick={onClose}
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 animate-in fade-in duration-150 cursor-pointer"
     >
-      {/* 🎯 2. e.stopPropagation() impede que o clique DENTRO do card feche o modal */}
       <div
         onClick={(e) => e.stopPropagation()}
         className="bg-white border border-slate-200/80 rounded-2xl max-w-md w-full p-5 shadow-xl relative space-y-4 cursor-default"
       >
-        {/* Cabeçalho */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2 text-rose-600 font-bold text-sm">
             <AlertTriangle className="w-4 h-4" />
@@ -111,7 +108,6 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, questionId }
           <form onSubmit={handleSubmit} className="space-y-4">
             <input type="hidden" value={questionId} />
 
-            {/* Qual é o problema? */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-2">
                 Qual é o problema? <span className="text-rose-500">*</span>
@@ -141,7 +137,6 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, questionId }
               </div>
             </div>
 
-            {/* Detalhe o problema */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 Detalhe o problema: <span className="text-rose-500">*</span>
@@ -205,10 +200,28 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
 
+  // 🎯 Estado para controlar o aviso visual do mobile
+  const [hideSwipeHint, setHideSwipeHint] = useState<boolean>(() => {
+    return localStorage.getItem('hide_swipe_hint') === 'true';
+  });
+
+  // 🎯 Escuta mudanças de evento para ocultar em todas as questões da tela simultaneamente
+  useEffect(() => {
+    const handleStorageChange = () => {
+      if (localStorage.getItem('hide_swipe_hint') === 'true') {
+        setHideSwipeHint(true);
+      }
+    };
+
+    window.addEventListener('swipe_hint_dismissed', handleStorageChange);
+    return () => {
+      window.removeEventListener('swipe_hint_dismissed', handleStorageChange);
+    };
+  }, []);
+
   const activeSelectedKey = isSimulado ? selectedAnswer : localSelectedKey;
   const activeIsSubmitted = isSimulado ? isSubmitted : localIsSubmitted;
 
-  // 🎯 ID puro da questão (ex: 2015-002)
   const idQuestaoPuro = question.id;
 
   const handleSelectOption = (key: string) => {
@@ -247,6 +260,12 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     if (onAnswerLogged) {
       onAnswerLogged(localSelectedKey === question.gabarito);
     }
+  };
+
+  const handleDismissSwipeHint = () => {
+    localStorage.setItem('hide_swipe_hint', 'true');
+    setHideSwipeHint(true);
+    window.dispatchEvent(new Event('swipe_hint_dismissed'));
   };
 
   return (
@@ -291,6 +310,33 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           onOpenZoom={setActiveImage}
         />
       </div>
+
+      {/* 💡 Banner Explicativo do Mobile (Alinhado à esquerda: Lâmpada no topo + Texto + Checkbox) */}
+      {!hideSwipeHint && !activeIsSubmitted && (
+        <div className="sm:hidden flex flex-col items-start text-left gap-2 p-3.5 mb-3 bg-amber-50/90 border border-amber-200/80 rounded-xl text-xs text-amber-900 shadow-xs">
+          {/* Ícone da Lâmpada no topo à esquerda */}
+          <div className="p-1.5 bg-amber-100/80 rounded-full text-amber-600">
+            <Lightbulb className="w-4 h-4" />
+          </div>
+
+          {/* Mensagem alinhada à esquerda */}
+          <p className="font-medium leading-tight text-amber-950">
+            Deslize a alternativa para o lado para riscá-la.
+          </p>
+
+          {/* Checkbox "Não mostrar novamente" alinhado à esquerda na base */}
+          <div className="w-full pt-2 mt-0.5 border-t border-amber-200/60 flex items-center justify-start">
+            <label className="inline-flex items-center gap-2 cursor-pointer text-[11px] text-amber-800 font-medium select-none">
+              <input
+                type="checkbox"
+                onChange={handleDismissSwipeHint}
+                className="w-3.5 h-3.5 rounded text-amber-600 focus:ring-amber-500 border-amber-300 accent-amber-600 cursor-pointer"
+              />
+              <span>Não mostrar novamente</span>
+            </label>
+          </div>
+        </div>
+      )}
 
       {/* Lista de Alternativas */}
       <div className="space-y-2 mb-6">
