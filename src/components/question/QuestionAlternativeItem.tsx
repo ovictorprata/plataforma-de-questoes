@@ -81,7 +81,9 @@ export const QuestionAlternativeItem: React.FC<QuestionAlternativeItemProps> = (
   if (isSelected) borderStyle = 'border-indigo-600 bg-indigo-50/40';
   if (isStruck) borderStyle = 'border-slate-100 bg-slate-50/60 opacity-40';
 
-  const showFeedback = !isSimulado || isSubmitted;
+  const isAnulada = gabarito?.toUpperCase() === 'N';
+  const showFeedback = (!isSimulado || isSubmitted) && !isAnulada; // 🎯 Se for anulada, não mostra feedback verde/vermelho
+
   if (showFeedback && isSubmitted) {
     if (chave === gabarito) {
       borderStyle = 'border-emerald-500 bg-emerald-50 text-emerald-900 font-medium';

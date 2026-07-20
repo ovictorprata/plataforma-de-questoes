@@ -31,18 +31,27 @@ export const useLocalAnalytics = () => {
     localStorage.setItem('exam_platform_analytics', JSON.stringify(analytics));
   }, [analytics]);
 
-  const logAnswer = (questionId: string, bloco: string, isCorrect: boolean) => {
+  const logAnswer = (questionId: string, bloco: string, isCorrect: boolean, isAnulada: boolean = false) => {
     const today = new Date().toLocaleDateString('pt-BR'); // Força estritamente DD/MM/AAAA
 
     setAnalytics((prev) => {
-      const currentDaily = prev.daily?.[today] || { correct: 0, total: 0 };
-      const currentSubject = prev.subjects?.[bloco] || { correct: 0, total: 0 };
-      const currentGlobal = prev.global || { correct: 0, wrong: 0 };
-      
       // Evita duplicar o ID caso o usuário responda a mesma questão mais de uma vez
       const updatedAnswers = prev.answeredQuestions.includes(questionId)
         ? prev.answeredQuestions
         : [...prev.answeredQuestions, questionId];
+
+      // 🎯 Se a questão for ANULADA, registramos apenas no 'answeredQuestions'
+      // para ela ser considerada "resolvida", mas IGNORAMOS a contagem de acertos/erros no dashboard.
+      if (isAnulada) {
+        return {
+          ...prev,
+          answeredQuestions: updatedAnswers
+        };
+      }
+
+      const currentDaily = prev.daily?.[today] || { correct: 0, total: 0 };
+      const currentSubject = prev.subjects?.[bloco] || { correct: 0, total: 0 };
+      const currentGlobal = prev.global || { correct: 0, wrong: 0 };
 
       return {
         daily: {

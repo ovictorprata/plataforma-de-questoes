@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Flag, HelpCircle, X, Send, AlertTriangle, CheckCircle2, Lightbulb } from 'lucide-react';
+import { Flag, HelpCircle, X, Send, AlertTriangle, CheckCircle2, Lightbulb, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Question } from '../types/question';
 
@@ -11,7 +11,7 @@ import { ImageLightboxModal } from './question/ImageLightboxModal';
 import { MathText } from './MathText';
 
 // 🚀 Dados reais do seu Google Forms
-const GOOGLE_FORM_ACTION_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLSdCCPEONgifuMsDuKoW2Jy3Dm3wPqQVHMhBU-YJLDwsF0Oamg/formResponse';
+const REPORT_FORM_ACTION_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLSdCCPEONgifuMsDuKoW2Jy3Dm3wPqQVHMhBU-YJLDwsF0Oamg/formResponse';
 const ENTRY_TIPO_PROBLEMA = 'entry.902632617';   // Qual é o problema?
 const ENTRY_CODIGO_QUESTAO = 'entry.510910820';  // Qual é o código da questão?
 const ENTRY_DETALHE_PROBLEMA = 'entry.607703748'; // Detalhe o problema:
@@ -54,7 +54,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, questionId }
     formData.append(ENTRY_DETALHE_PROBLEMA, detalhe);
 
     try {
-      await fetch(GOOGLE_FORM_ACTION_URL, {
+      await fetch(REPORT_FORM_ACTION_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: {
@@ -180,7 +180,8 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, questionId }
 
 interface QuestionCardProps {
   question: Question;
-  onAnswerLogged?: (isCorrect: boolean) => void;
+  // 🎯 Assinatura atualizada: (isCorrect, isAnulada, questionId, bloco)
+  onAnswerLogged?: (isCorrect: boolean, isAnulada?: boolean, questionId?: string, bloco?: string) => void;
   onReportIssue?: (questionId: string) => void;
   isSimulado?: boolean;
   isSubmitted?: boolean;
@@ -258,33 +259,42 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   };
 
   const handleLocalSubmit = async () => {
-  if (!localSelectedKey || localIsSubmitted) return;
+    if (!localSelectedKey || localIsSubmitted) return;
 
-  // 1. Atualiza o estado da tela imediatamente para o usuário
-  setLocalIsSubmitted(true);
-  if (onAnswerLogged) {
-    onAnswerLogged(localSelectedKey === question.gabarito);
-  }
+    // 1. Atualiza o estado da tela imediatamente para o usuário
+    setLocalIsSubmitted(true);
 
-  // 2. Prepara os dados no padrão URLSearchParams
-  const formData = new URLSearchParams();
-  formData.append(ENTRY_ID_PERGUNTA, idQuestaoPuro);              // Código da questão
-  formData.append(ENTRY_RESPOSTA, localSelectedKey.toUpperCase()); // Letra da alternativa (A, B, C, D ou E)
+    // 🎯 Verifica se a questão é anulada pelo gabarito 'N'
+    const isAnulada = question.gabarito?.trim().toUpperCase() === 'N';
 
-  // 3. Envia os dados de forma assíncrona/silenciosa para o Google Forms de respostas
-  try {
-    await fetch(ANSWERS_FORM_ACTION_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: formData.toString(),
-    });
-  } catch (error) {
-    console.error('Erro ao registrar a resposta no Google Forms:', error);
-  }
-};
+    if (onAnswerLogged) {
+      onAnswerLogged(
+        localSelectedKey === question.gabarito,
+        isAnulada,
+        idQuestaoPuro,
+        question.taxonomia?.bloco || 'Geral'
+      );
+    }
+
+    // 2. Prepara os dados no padrão URLSearchParams
+    const formData = new URLSearchParams();
+    formData.append(ENTRY_ID_PERGUNTA, idQuestaoPuro);
+    formData.append(ENTRY_RESPOSTA, localSelectedKey.toUpperCase());
+
+    // 3. Envia os dados de forma assíncrona para o Google Forms
+    try {
+      await fetch(ANSWERS_FORM_ACTION_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString(),
+      });
+    } catch (error) {
+      console.error('Erro ao registrar a resposta no Google Forms:', error);
+    }
+  };
 
   const handleDismissSwipeHint = () => {
     localStorage.setItem('hide_swipe_hint', 'true');
@@ -362,6 +372,14 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         </div>
       )}
 
+      {/* ⚠️ Alerta Visual de Questão Anulada (Exibido apenas se o gabarito for 'N') */}
+     {question.gabarito?.toUpperCase() === 'N' && (
+      <div className="flex items-center gap-2.5 p-3 mb-4 bg-rose-50/90 border border-rose-200/90 rounded-xl text-rose-900 text-xs font-semibold shadow-xs">
+        <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+        <span>Esta questão foi <strong>ANULADA</strong> e não possui alternativa correta.</span>
+      </div>
+    )}
+
       {/* Lista de Alternativas */}
       <div className="space-y-2 mb-6">
         {question.alternativas.map((alt) => (
@@ -393,7 +411,13 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           >
             <div className="flex items-center gap-2 font-bold text-slate-900">
               <HelpCircle className="w-4 h-4 text-indigo-600 shrink-0" />
-              <span>Gabarito Comentado (Alternativa {question.gabarito}):</span>
+              <span>
+                Gabarito Comentado{' '}
+                {question.gabarito?.toUpperCase() === 'N'
+                  ? '(Questão Anulada)'
+                  : `(Alternativa ${question.gabarito})`}
+                :
+              </span>
             </div>
             <p className="leading-relaxed pl-6 text-slate-600 whitespace-pre-line">
               {question.explicacao || 'Nenhuma explicação cadastrada para esta questão.'}

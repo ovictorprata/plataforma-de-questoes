@@ -117,7 +117,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ analytic
         <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 flex items-center gap-2">
           <BookOpen className="w-4 h-4 text-indigo-500" /> Desempenho por Bloco
         </h3>
-        <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+        {/* Removidos: max-h-64 e overflow-y-auto */}
+        <div className="space-y-3 pr-1">
           {Object.keys(analytics.subjects).length === 0 ? (
             <p className="text-sm text-slate-400 py-4 text-center">Nenhuma questão respondida ainda.</p>
           ) : (

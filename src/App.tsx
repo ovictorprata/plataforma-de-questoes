@@ -270,9 +270,14 @@ export const App: React.FC = () => {
                   <QuestionCard
                     key={idComposto}
                     question={question}
-                    onAnswerLogged={(isCorrect) =>
-                      logAnswer(idComposto, question.taxonomia?.disciplina || 'Geral', isCorrect)
-                    }
+                    onAnswerLogged={(isCorrect, isAnulada, questionId, bloco) => {
+                    logAnswer(
+                      questionId || question.id,
+                      bloco || question.taxonomia?.bloco || 'Geral',
+                      isCorrect,
+                      isAnulada
+                    );
+                  }}
                   />
                 );
               })}
