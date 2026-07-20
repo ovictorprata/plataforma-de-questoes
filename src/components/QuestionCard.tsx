@@ -47,7 +47,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, questionId }
 
     const formData = new URLSearchParams();
     formData.append(ENTRY_TIPO_PROBLEMA, tipoProblema);
-    formData.append(ENTRY_CODIGO_QUESTAO, questionId); // 🎯 Envia o ID da questão (ex: 2015-002) silenciosamente
+    formData.append(ENTRY_CODIGO_QUESTAO, questionId);
     formData.append(ENTRY_DETALHE_PROBLEMA, detalhe);
 
     try {
@@ -76,8 +76,16 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, questionId }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-      <div className="bg-white border border-slate-200/80 rounded-2xl max-w-md w-full p-5 shadow-xl relative space-y-4">
+    /* 🎯 1. Clicar no overlay escuro chama o onClose() */
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 animate-in fade-in duration-150 cursor-pointer"
+    >
+      {/* 🎯 2. e.stopPropagation() impede que o clique DENTRO do card feche o modal */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white border border-slate-200/80 rounded-2xl max-w-md w-full p-5 shadow-xl relative space-y-4 cursor-default"
+      >
         {/* Cabeçalho */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2 text-rose-600 font-bold text-sm">
@@ -101,7 +109,6 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, questionId }
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* 🎯 Input oculta do ID (envia em background sem poluir a tela) */}
             <input type="hidden" value={questionId} />
 
             {/* Qual é o problema? */}
