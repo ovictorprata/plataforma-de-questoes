@@ -1,7 +1,8 @@
 @import "tailwindcss";
+@import "./App.css";
 
 @theme inline {
-  --color-indigo-600: #8936d6; /* Roxo açaí vibrante, porém mais quente */
-  --color-indigo-50: #faf5ff;  /* Fundo lavanda limpo */
-  --color-indigo-700: #742ab8; /* Hover açaí profundo */
+  --color-indigo-600: #8936d6;
+  --color-indigo-50: #faf5ff; 
+  --color-indigo-700: #742ab8;
 }
