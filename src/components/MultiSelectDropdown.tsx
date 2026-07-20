@@ -1,11 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { ChevronDown, Search, X } from 'lucide-react';
+
+export interface GroupedOption<T extends string | number> {
+  group: string;
+  items: T[];
+}
 
 interface MultiSelectDropdownProps<T extends string | number> {
   title: string;
-  options: T[];
+  options: T[] | GroupedOption<T>[];
   selectedOptions: T[];
   onToggle: (option: T) => void;
+  onToggleGroup?: (groupItems: T[], shouldSelectAll: boolean) => void;
   onClear: () => void;
   searchable?: boolean;
 }
@@ -15,6 +21,7 @@ export function MultiSelectDropdown<T extends string | number>({
   options,
   selectedOptions,
   onToggle,
+  onToggleGroup,
   onClear,
   searchable = true,
 }: MultiSelectDropdownProps<T>) {
@@ -22,7 +29,6 @@ export function MultiSelectDropdown<T extends string | number>({
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fecha o dropdown ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -33,16 +39,51 @@ export function MultiSelectDropdown<T extends string | number>({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Rastreia itens undefined/null e aponta no Console do F12
-  const filteredOptions = options.filter((opt, index) => {
-    if (opt === undefined || opt === null) {
-      console.error(
-        `❌ [ERRO DE DADOS] O item na posição ${index} da lista "${title}" está vindo como: ${opt}`
+  const isGrouped = useMemo(() => {
+    return options.length > 0 && typeof options[0] === 'object' && 'group' in options[0];
+  }, [options]);
+
+  const processedGroups = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+
+    if (isGrouped) {
+      const groupedList = options as GroupedOption<T>[];
+
+      const sortedGroups = [...groupedList].sort((a, b) =>
+        a.group.localeCompare(b.group, 'pt-BR', { sensitivity: 'base' })
       );
-      return false;
+
+      return sortedGroups
+        .map((g) => {
+          const groupMatches = g.group.toLowerCase().includes(term);
+
+          // Se o nome do Grupo/Disciplina bate na busca, exibe TODOS os itens dele.
+          // Se não bate, filtra pelos nomes dos itens.
+          const filteredItems = groupMatches
+            ? g.items
+            : g.items.filter((item) => {
+                if (item === undefined || item === null) return false;
+                return item.toString().toLowerCase().includes(term);
+              });
+
+          return {
+            group: g.group,
+            items: filteredItems,
+          };
+        })
+        .filter((g) => g.items.length > 0);
+    } else {
+      const flatList = options as T[];
+      const filtered = flatList.filter((opt) => {
+        if (opt === undefined || opt === null) return false;
+        return opt.toString().toLowerCase().includes(term);
+      });
+
+      return [{ group: '', items: filtered }];
     }
-    return opt.toString().toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  }, [options, isGrouped, searchTerm]);
+
+  const hasResults = processedGroups.some((g) => g.items.length > 0);
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
@@ -57,20 +98,23 @@ export function MultiSelectDropdown<T extends string | number>({
             ? title
             : `${selectedOptions.length} selecionado(s)`}
         </span>
-        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`w-4 h-4 text-slate-400 transition-transform shrink-0 ${
+            isOpen ? 'rotate-180' : ''
+          }`}
+        />
       </button>
 
       {/* Menu Suspenso */}
       {isOpen && (
-        <div className="absolute left-0 z-50 mt-1 min-w-full w-max max-w-[90vw] sm:max-w-md md:max-w-lg bg-white border border-slate-200 rounded-xl shadow-xl p-2 max-h-72 flex flex-col gap-2 animate-in fade-in zoom-in-95 duration-100">
-          
+        <div className="absolute left-0 z-50 mt-1 min-w-full w-max max-w-[90vw] sm:w-80 md:w-96 bg-white border border-slate-200 rounded-xl shadow-xl p-2 max-h-80 flex flex-col gap-2 animate-in fade-in zoom-in-95 duration-100">
           {/* Campo de Busca */}
           {searchable && (
             <div className="relative flex items-center shrink-0">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5" />
               <input
                 type="text"
-                placeholder="Pesquisar..."
+                placeholder="Pesquisar por disciplina ou bloco..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-indigo-600"
@@ -100,30 +144,69 @@ export function MultiSelectDropdown<T extends string | number>({
             </div>
           )}
 
-          {/* Lista de Opções Sem Reticências */}
-          <div className="overflow-y-auto max-h-52 space-y-1 pr-1">
-            {filteredOptions.length === 0 ? (
-              <p className="text-[11px] text-slate-400 p-2 text-center">Nenhum resultado</p>
+          {/* Lista de Opções */}
+          <div className="overflow-y-auto max-h-60 space-y-3 pr-1">
+            {!hasResults ? (
+              <p className="text-[11px] text-slate-400 p-2 text-center">
+                Nenhum resultado
+              </p>
             ) : (
-              filteredOptions.map((option) => {
-                const isSelected = selectedOptions.includes(option);
+              processedGroups.map((groupObj, idx) => {
+                // Checa quantos itens do grupo estão selecionados
+                const allGroupItemsSelected =
+                  groupObj.items.length > 0 &&
+                  groupObj.items.every((item) => selectedOptions.includes(item));
+
                 return (
-                  <label
-                    key={String(option)}
-                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg hover:bg-slate-50 cursor-pointer text-xs select-none transition-colors"
-                  >
-                    {/* Checkbox à esquerda */}
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => onToggle(option)}
-                      className="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 accent-indigo-600 shrink-0"
-                    />
-                    {/* Nome por Extenso */}
-                    <span className={`whitespace-normal leading-normal ${isSelected ? 'font-bold text-indigo-950' : 'text-slate-700'}`}>
-                      {option}
-                    </span>
-                  </label>
+                  <div key={groupObj.group || idx} className="space-y-1">
+                    {/* Cabeçalho do Grupo com Checkbox da Disciplina */}
+                    {groupObj.group && (
+                      <div className="flex items-center justify-between px-2 pt-1 border-b border-slate-100 pb-1 sticky top-0 bg-white z-10">
+                        <span className="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">
+                          {groupObj.group}
+                        </span>
+
+                        {onToggleGroup && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onToggleGroup(groupObj.items, !allGroupItemsSelected)
+                            }
+                            className="text-[10px] font-bold text-slate-400 hover:text-indigo-600 transition-colors uppercase"
+                          >
+                            {allGroupItemsSelected ? 'Desmarcar todos' : 'Marcar todos'}
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Itens do Grupo */}
+                    {groupObj.items.map((option) => {
+                      const isSelected = selectedOptions.includes(option);
+                      return (
+                        <label
+                          key={String(option)}
+                          className="flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 cursor-pointer text-xs select-none transition-colors"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => onToggle(option)}
+                            className="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 accent-indigo-600 shrink-0"
+                          />
+                          <span
+                            className={`whitespace-normal leading-normal ${
+                              isSelected
+                                ? 'font-bold text-indigo-950'
+                                : 'text-slate-700'
+                            }`}
+                          >
+                            {option}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
                 );
               })
             )}

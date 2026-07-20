@@ -18,10 +18,10 @@ export const MathText: React.FC<MathTextProps> = ({
   const getBoldStyle = () => {
     if (variant === 'enunciado') {
       // Preto com sublinhado/risco sutil no enunciado
-      return 'font-extrabold text-black dark:text-white underline decoration-indigo-400 decoration-2 underline-offset-2';
+      return 'font-bold text-black dark:text-white underline decoration-indigo-400 decoration-2 underline-offset-2';
     }
     // Apenas negrito para alternativas (e default)
-    return 'font-extrabold text-black dark:text-white';
+    return 'font-bold text-black dark:text-white';
   };
 
   const renderFormattedText = (rawText: string) => {

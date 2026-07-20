@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react';
 import { Filter, EyeOff } from 'lucide-react';
-import { MultiSelectDropdown } from './MultiSelectDropdown';
+import { MultiSelectDropdown, type GroupedOption } from './MultiSelectDropdown';
 
 export interface FilterBankSectionProps {
   jsonFilesList: string[];
   disciplinasDisponiveis: string[];
-  // Mapeamento para filtrar os blocos conforme a disciplina selecionada
   questoesMapeamento: {
     disciplina: string;
     bloco?: string | null;
@@ -54,17 +53,45 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
   appliedExcludeResolved,
   onApplyFilters,
 }) => {
-  // Filtra os blocos dinamicamente baseados na(s) disciplina(s) selecionada(s) no filtro temporário
-  const blocosFiltrados = useMemo(() => {
-    let dataset = questoesMapeamento;
-    
-    if (tempDisciplinaFilter.length > 0) {
-      dataset = dataset.filter((q) => tempDisciplinaFilter.includes(q.disciplina));
-    }
-
-    return Array.from(
-      new Set(dataset.map((q) => q.bloco).filter(Boolean) as string[])
+  // Ordena as disciplinas em ordem alfabética (A-Z) para o dropdown de disciplinas
+  const disciplinasOrdenadas = useMemo(() => {
+    return [...disciplinasDisponiveis].sort((a, b) =>
+      a.localeCompare(b, 'pt-BR', { sensitivity: 'base' })
     );
+  }, [disciplinasDisponiveis]);
+
+  // Monta os blocos agrupados por disciplina e ordenados alfabeticamente
+  const blocosAgrupados = useMemo<GroupedOption<string>[]>(() => {
+    const mapaGrupos: Record<string, string[]> = {};
+
+    questoesMapeamento.forEach((q) => {
+      if (!q.bloco) return;
+
+      // Se houver disciplina selecionada no filtro temporário, exibe apenas os blocos dela
+      if (
+        tempDisciplinaFilter.length > 0 &&
+        !tempDisciplinaFilter.includes(q.disciplina)
+      ) {
+        return;
+      }
+
+      if (!mapaGrupos[q.disciplina]) {
+        mapaGrupos[q.disciplina] = [];
+      }
+
+      if (!mapaGrupos[q.disciplina].includes(q.bloco)) {
+        mapaGrupos[q.disciplina].push(q.bloco);
+      }
+    });
+
+    // Converte o mapa em um array de objetos { group, items }
+    // As disciplinas (group) e blocos (items) serão ordenados alfabeticamente pelo MultiSelectDropdown
+    return Object.entries(mapaGrupos).map(([disciplina, blocos]) => ({
+      group: disciplina,
+      items: blocos.sort((a, b) =>
+        a.localeCompare(b, 'pt-BR', { sensitivity: 'base' })
+      ),
+    }));
   }, [questoesMapeamento, tempDisciplinaFilter]);
 
   const hasActiveSelections =
@@ -115,7 +142,9 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {/* 1. Origem / Simulado */}
         <div>
-          <label className="block text-xs font-semibold text-slate-400 mb-1">Origem / Simulado</label>
+          <label className="block text-xs font-semibold text-slate-400 mb-1">
+            Origem / Simulado
+          </label>
           <MultiSelectDropdown
             title="Todos os JSONs"
             options={jsonFilesList}
@@ -129,17 +158,21 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
           />
         </div>
 
-        {/* 2. Disciplina (NOVO) */}
+        {/* 2. Disciplina (Ordenada A-Z) */}
         <div>
-          <label className="block text-xs font-semibold text-slate-400 mb-1">Disciplina</label>
+          <label className="block text-xs font-semibold text-slate-400 mb-1">
+            Disciplina
+          </label>
           <MultiSelectDropdown
             title="Todas as disciplinas"
-            options={disciplinasDisponiveis}
+            options={disciplinasOrdenadas}
             selectedOptions={tempDisciplinaFilter}
             onToggle={(item) => {
               setTempDisciplinaFilter((prev) => {
-                const updated = prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item];
-                // Limpa blocos que não pertencem mais à seleção de disciplina
+                const updated = prev.includes(item)
+                  ? prev.filter((i) => i !== item)
+                  : [...prev, item];
+                // Limpa blocos selecionados ao alterar disciplinas
                 setTempBlocoFilter([]);
                 return updated;
               });
@@ -151,17 +184,34 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
           />
         </div>
 
-        {/* 3. Bloco / Matéria (Dinâmico) */}
+        {/* 3. Bloco / Assunto */}
         <div>
-          <label className="block text-xs font-semibold text-slate-400 mb-1">Bloco / Assunto</label>
+          <label className="block text-xs font-semibold text-slate-400 mb-1">
+            Bloco / Assunto
+          </label>
           <MultiSelectDropdown
             title="Todos os blocos"
-            options={blocosFiltrados}
+            options={blocosAgrupados}
             selectedOptions={tempBlocoFilter}
             onToggle={(item) => {
+              const itemStr = item as string;
               setTempBlocoFilter((prev) =>
-                prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
+                prev.includes(itemStr)
+                  ? prev.filter((i) => i !== itemStr)
+                  : [...prev, itemStr]
               );
+            }}
+            onToggleGroup={(groupItems, shouldSelectAll) => {
+              const itemsStr = groupItems as string[];
+              setTempBlocoFilter((prev) => {
+                if (shouldSelectAll) {
+                  // Adiciona os itens da disciplina mantendo os que já estavam selecionados
+                  return Array.from(new Set([...prev, ...itemsStr]));
+                } else {
+                  // Remove todos os itens dessa disciplina
+                  return prev.filter((i) => !itemsStr.includes(i));
+                }
+              });
             }}
             onClear={() => setTempBlocoFilter([])}
           />
@@ -169,7 +219,9 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
 
         {/* 4. Ano */}
         <div>
-          <label className="block text-xs font-semibold text-slate-400 mb-1">Ano</label>
+          <label className="block text-xs font-semibold text-slate-400 mb-1">
+            Ano
+          </label>
           <MultiSelectDropdown
             title="Todos os anos"
             options={anosDisponiveis}
