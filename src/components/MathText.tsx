@@ -14,12 +14,13 @@ export const MathText: React.FC<MathTextProps> = ({
 }) => {
   if (!text) return null;
 
+  // 🎯 Define os estilos aplicados APENAS quando o texto tiver a marcação de negrito (**texto**)
   const getBoldStyle = () => {
-  if (variant === 'enunciado') {
-    return 'font-bold text-black dark:text-white underline decoration-[var(--color-secondary-subtle)] decoration-2 underline-offset-2';
-  }
-  return 'font-bold text-black dark:text-white';
-};
+    if (variant === 'enunciado') {
+      return 'font-bold text-slate-900 underline decoration-[var(--color-secondary-subtle)] decoration-2 underline-offset-2';
+    }
+    return 'font-bold text-slate-900';
+  };
 
   const renderFormattedText = (rawText: string) => {
     const boldParts = rawText.split(/(\*\*.*?\*\*)/g);
@@ -32,6 +33,7 @@ export const MathText: React.FC<MathTextProps> = ({
           </strong>
         );
       }
+      // O texto comum permanece na fonte normal (sem font-bold global)
       return <span key={index}>{part}</span>;
     });
   };
@@ -39,7 +41,7 @@ export const MathText: React.FC<MathTextProps> = ({
   const parts = text.split(/(\\\([^\\]+\\\)|\\\[[^\\]+\\\])/g);
 
   return (
-    <span className={className}>
+    <span className={`font-normal text-slate-800 ${className}`}>
       {parts.map((part, index) => {
         if (part.startsWith('\\(') && part.endsWith('\\)')) {
           const math = part.slice(2, -2);

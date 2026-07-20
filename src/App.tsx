@@ -233,7 +233,6 @@ export const App: React.FC = () => {
         {/* ABA BANCO DE QUESTÕES */}
         {activeTab === 'banco' && (
           <div className="space-y-4">
-            {/* Seção de Filtros (Com Total de Questões e Seletor de Páginas integrados) */}
             <FilterBankSection
               jsonFilesList={jsonFilesList}
               disciplinasDisponiveis={disciplinasDisponiveis}
@@ -263,7 +262,7 @@ export const App: React.FC = () => {
               }}
             />
 
-            {/* Lista de Questões (Vem imediatamente após os Filtros, sem caixa intermediária) */}
+            {/* Lista de Questões Paginadas */}
             <div className="space-y-4">
               {currentQuestionsBatchSlice.map((question) => {
                 const idComposto = `${(question as QuestionWithSource).origemJson || 'q'}-${question.id}`;
@@ -290,7 +289,7 @@ export const App: React.FC = () => {
               )}
             </div>
 
-            {/* NAVEGAÇÃO ENTRE PÁGINAS (Com Scroll Suave ao topo) */}
+            {/* Navegação da Paginação (Apenas no Banco de Questões) */}
             {displayQuestions.length > 0 && (
               <Pagination
                 currentPage={currentPage}
@@ -304,7 +303,7 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* ABA SIMULADO */}
+        {/* ABA SIMULADO (Exibe todas as questões sem paginação) */}
         {activeTab === 'simulado' && (
           displayQuestions.length === 0 ? (
             <ExamSetup 
@@ -342,8 +341,9 @@ export const App: React.FC = () => {
                 />
               )}
 
+              {/* 🎯 Lista Completa do Simulado (Mostra TODAS as questões de uma vez) */}
               <div className="space-y-4">
-                {currentQuestionsBatchSlice.map((question) => {
+                {displayQuestions.map((question) => {
                   const idComposto = `${(question as QuestionWithSource).origemJson || 'q'}-${question.id}`;
                   return (
                     <QuestionCard
@@ -358,6 +358,7 @@ export const App: React.FC = () => {
                 })}
               </div>
 
+              {/* Card de Finalização do Simulado */}
               {!isSimuladoSubmitted && (
                 <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 mt-6">
                   <span className="text-xs text-slate-500 font-medium">
@@ -374,15 +375,6 @@ export const App: React.FC = () => {
                   </button>
                 </div>
               )}
-
-              <Pagination
-                currentPage={currentPage}
-                totalQuestions={displayQuestions.length}
-                pageSize={pageSize}
-                onPageChange={handlePageChange}
-                onPageSizeChange={setPageSize}
-                mode="navigationOnly"
-              />
             </div>
           )
         )}

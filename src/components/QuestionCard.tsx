@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Flag, HelpCircle } from 'lucide-react';
+import { Flag, HelpCircle, X, Send, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Question } from '../types/question';
 
@@ -9,6 +9,169 @@ import { QuestionMediaSupport } from './question/QuestionMediaSupport';
 import { QuestionAlternativeItem } from './question/QuestionAlternativeItem';
 import { ImageLightboxModal } from './question/ImageLightboxModal';
 import { MathText } from './MathText';
+
+// 🚀 Dados reais do seu Google Forms
+const GOOGLE_FORM_ACTION_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLSdCCPEONgifuMsDuKoW2Jy3Dm3wPqQVHMhBU-YJLDwsF0Oamg/formResponse';
+const ENTRY_TIPO_PROBLEMA = 'entry.902632617';   // Qual é o problema?
+const ENTRY_CODIGO_QUESTAO = 'entry.510910820';  // Qual é o código da questão?
+const ENTRY_DETALHE_PROBLEMA = 'entry.607703748'; // Detalhe o problema:
+
+interface ReportModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  questionId: string;
+}
+
+const OPCOES_PROBLEMA = [
+  'Alternativa errada',
+  'Enunciado errado',
+  'Disciplina ou assunto errado',
+  'Questão anulada',
+  'Questão repetida',
+  'Erro de digitação/formatação no enunciado',
+];
+
+const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, questionId }) => {
+  const [tipoProblema, setTipoProblema] = useState<string>('');
+  const [detalhe, setDetalhe] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tipoProblema || !detalhe.trim()) return;
+
+    setIsSubmitting(true);
+
+    const formData = new URLSearchParams();
+    formData.append(ENTRY_TIPO_PROBLEMA, tipoProblema);
+    formData.append(ENTRY_CODIGO_QUESTAO, questionId); // 🎯 Envia o ID da questão (ex: 2015-002) silenciosamente
+    formData.append(ENTRY_DETALHE_PROBLEMA, detalhe);
+
+    try {
+      await fetch(GOOGLE_FORM_ACTION_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString(),
+      });
+
+      setIsSuccess(true);
+      setTimeout(() => {
+        setIsSuccess(false);
+        setTipoProblema('');
+        setDetalhe('');
+        onClose();
+      }, 1800);
+    } catch (error) {
+      console.error('Erro ao enviar o relato:', error);
+      alert('Houve um erro ao enviar seu relato. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+      <div className="bg-white border border-slate-200/80 rounded-2xl max-w-md w-full p-5 shadow-xl relative space-y-4">
+        {/* Cabeçalho */}
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="flex items-center gap-2 text-rose-600 font-bold text-sm">
+            <AlertTriangle className="w-4 h-4" />
+            <span>Reportar Problema</span>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 rounded-lg p-1 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {isSuccess ? (
+          <div className="py-8 text-center space-y-2">
+            <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto animate-bounce" />
+            <p className="text-sm font-bold text-slate-800">Relato enviado com sucesso!</p>
+            <p className="text-xs text-slate-500">Obrigado por ajudar a melhorar o banco de questões.</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* 🎯 Input oculta do ID (envia em background sem poluir a tela) */}
+            <input type="hidden" value={questionId} />
+
+            {/* Qual é o problema? */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-2">
+                Qual é o problema? <span className="text-rose-500">*</span>
+              </label>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                {OPCOES_PROBLEMA.map((opcao) => (
+                  <label
+                    key={opcao}
+                    className={`flex items-center gap-2.5 p-2 rounded-xl border text-xs cursor-pointer transition-all ${
+                      tipoProblema === opcao
+                        ? 'border-indigo-600 bg-indigo-50/50 text-indigo-900 font-semibold'
+                        : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="tipoProblema"
+                      value={opcao}
+                      checked={tipoProblema === opcao}
+                      onChange={(e) => setTipoProblema(e.target.value)}
+                      className="text-indigo-600 focus:ring-indigo-500 accent-indigo-600"
+                      required
+                    />
+                    <span>{opcao}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Detalhe o problema */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Detalhe o problema: <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                required
+                rows={3}
+                value={detalhe}
+                onChange={(e) => setDetalhe(e.target.value)}
+                placeholder="Descreva o que encontrou de errado para podermos corrigir..."
+                className="w-full border border-slate-200 rounded-xl p-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 resize-none"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting || !tipoProblema || !detalhe.trim()}
+                className="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-xs"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>{isSubmitting ? 'Enviando...' : 'Enviar Relato'}</span>
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
 
 interface QuestionCardProps {
   question: Question;
@@ -33,9 +196,13 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   const [localIsSubmitted, setLocalIsSubmitted] = useState<boolean>(false);
   const [struckOptions, setStruckOptions] = useState<string[]>([]);
   const [activeImage, setActiveImage] = useState<string | null>(null);
+  const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
 
   const activeSelectedKey = isSimulado ? selectedAnswer : localSelectedKey;
   const activeIsSubmitted = isSimulado ? isSubmitted : localIsSubmitted;
+
+  // 🎯 ID puro da questão (ex: 2015-002)
+  const idQuestaoPuro = question.id;
 
   const handleSelectOption = (key: string) => {
     if (activeIsSubmitted) return;
@@ -76,7 +243,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   };
 
   return (
-    <div className="w-full bg-white rounded-xl border border-slate-100 shadow-sm p-6 mb-4 relative">
+    <div className="w-full bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 mb-4 relative">
       <QuestionHeader question={question} />
 
       <TextoAssociadoAccordion textoId={question.texto_associado} />
@@ -162,7 +329,10 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-2">
         <button
           type="button"
-          onClick={() => onReportIssue && onReportIssue(question.id)}
+          onClick={() => {
+            if (onReportIssue) onReportIssue(idQuestaoPuro);
+            setIsReportModalOpen(true);
+          }}
           className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-rose-600 transition-colors py-1.5 px-2 rounded-lg hover:bg-rose-50/50"
         >
           <Flag className="w-3.5 h-3.5" />
@@ -172,14 +342,22 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         {!isSimulado && localSelectedKey && !localIsSubmitted && (
           <button
             onClick={handleLocalSubmit}
-            className="bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-sm"
+            className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-xs"
           >
             Responder Questão
           </button>
         )}
       </div>
 
+      {/* Modal Zoom da Imagem */}
       <ImageLightboxModal activeImage={activeImage} onClose={() => setActiveImage(null)} />
+
+      {/* Modal Silencioso de Reportar Problema via Google Forms */}
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        questionId={idQuestaoPuro}
+      />
     </div>
   );
 };
