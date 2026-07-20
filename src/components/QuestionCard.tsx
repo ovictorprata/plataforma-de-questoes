@@ -15,6 +15,9 @@ const GOOGLE_FORM_ACTION_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLSdC
 const ENTRY_TIPO_PROBLEMA = 'entry.902632617';   // Qual é o problema?
 const ENTRY_CODIGO_QUESTAO = 'entry.510910820';  // Qual é o código da questão?
 const ENTRY_DETALHE_PROBLEMA = 'entry.607703748'; // Detalhe o problema:
+const ANSWERS_FORM_ACTION_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLSf9liLj43-pirNjAqSTmsU6HQclOuj9sH4mW5I7LFoI6CSSzQ/formResponse';
+const ENTRY_ID_PERGUNTA = 'entry.1117922377'; // ID Pergunta
+const ENTRY_RESPOSTA = 'entry.821502335';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -254,13 +257,34 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     });
   };
 
-  const handleLocalSubmit = () => {
-    if (!localSelectedKey || localIsSubmitted) return;
-    setLocalIsSubmitted(true);
-    if (onAnswerLogged) {
-      onAnswerLogged(localSelectedKey === question.gabarito);
-    }
-  };
+  const handleLocalSubmit = async () => {
+  if (!localSelectedKey || localIsSubmitted) return;
+
+  // 1. Atualiza o estado da tela imediatamente para o usuário
+  setLocalIsSubmitted(true);
+  if (onAnswerLogged) {
+    onAnswerLogged(localSelectedKey === question.gabarito);
+  }
+
+  // 2. Prepara os dados no padrão URLSearchParams
+  const formData = new URLSearchParams();
+  formData.append(ENTRY_ID_PERGUNTA, idQuestaoPuro);              // Código da questão
+  formData.append(ENTRY_RESPOSTA, localSelectedKey.toUpperCase()); // Letra da alternativa (A, B, C, D ou E)
+
+  // 3. Envia os dados de forma assíncrona/silenciosa para o Google Forms de respostas
+  try {
+    await fetch(ANSWERS_FORM_ACTION_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData.toString(),
+    });
+  } catch (error) {
+    console.error('Erro ao registrar a resposta no Google Forms:', error);
+  }
+};
 
   const handleDismissSwipeHint = () => {
     localStorage.setItem('hide_swipe_hint', 'true');

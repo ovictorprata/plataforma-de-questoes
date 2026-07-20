@@ -49,7 +49,7 @@ export const App: React.FC = () => {
   const [snapshotAnsweredQuestions, setSnapshotAnsweredQuestions] = useState<string[]>([]);
 
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pageSize, setPageSize] = useState<number>(5);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   useEffect(() => {
     async function carregarTodasAsQuestoes() {

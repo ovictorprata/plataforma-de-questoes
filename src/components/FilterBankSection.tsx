@@ -258,7 +258,7 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
           <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
             <span>Questões por página:</span>
             <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg">
-              {[5, 10, 20].map((size) => (
+              {[10, 20, 50].map((size) => (
                 <button
                   key={size}
                   type="button"
