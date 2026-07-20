@@ -6,7 +6,10 @@ export interface FilterBankSectionProps {
   jsonFilesList: string[];
   disciplinasDisponiveis: string[];
   // Mapeamento para filtrar os blocos conforme a disciplina selecionada
-  questoesMapeamento: Array<{ disciplina: string; bloco?: string }>;
+  questoesMapeamento: {
+    disciplina: string;
+    bloco?: string | null;
+  }[];
   anosDisponiveis: number[];
 
   tempJsonFilter: string[];

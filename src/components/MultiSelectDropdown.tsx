@@ -33,9 +33,16 @@ export function MultiSelectDropdown<T extends string | number>({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredOptions = options.filter((opt) =>
-    opt.toString().toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Rastreia itens undefined/null e aponta no Console do F12
+  const filteredOptions = options.filter((opt, index) => {
+    if (opt === undefined || opt === null) {
+      console.error(
+        `❌ [ERRO DE DADOS] O item na posição ${index} da lista "${title}" está vindo como: ${opt}`
+      );
+      return false;
+    }
+    return opt.toString().toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   return (
     <div className="relative w-full" ref={dropdownRef}>
@@ -53,7 +60,7 @@ export function MultiSelectDropdown<T extends string | number>({
         <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
-      {/* Menu Suspenso (Ajustado para expansão por extenso no Desktop) */}
+      {/* Menu Suspenso */}
       {isOpen && (
         <div className="absolute left-0 z-50 mt-1 min-w-full w-max max-w-[90vw] sm:max-w-md md:max-w-lg bg-white border border-slate-200 rounded-xl shadow-xl p-2 max-h-72 flex flex-col gap-2 animate-in fade-in zoom-in-95 duration-100">
           
@@ -102,7 +109,7 @@ export function MultiSelectDropdown<T extends string | number>({
                 const isSelected = selectedOptions.includes(option);
                 return (
                   <label
-                    key={option.toString()}
+                    key={String(option)}
                     className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg hover:bg-slate-50 cursor-pointer text-xs select-none transition-colors"
                   >
                     {/* Checkbox à esquerda */}
@@ -112,7 +119,7 @@ export function MultiSelectDropdown<T extends string | number>({
                       onChange={() => onToggle(option)}
                       className="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 accent-indigo-600 shrink-0"
                     />
-                    {/* Nome por Extenso (Sem truncate) */}
+                    {/* Nome por Extenso */}
                     <span className={`whitespace-normal leading-normal ${isSelected ? 'font-bold text-indigo-950' : 'text-slate-700'}`}>
                       {option}
                     </span>

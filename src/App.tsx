@@ -48,7 +48,8 @@ export const App: React.FC = () => {
   useEffect(() => {
     async function carregarTodasAsQuestoes() {
       try {
-        const modulos = import.meta.glob<JsonModule>('./data/*.json');
+        // Carrega apenas os arquivos JSON de questões na pasta /data/questoes/
+        const modulos = import.meta.glob<JsonModule>('./data/questoes/*.json');
         const todasAsPromessas: Promise<{ mod: JsonModule; nomeLimpo: string }>[] = [];
         const nomesArquivos: string[] = [];
 
@@ -176,6 +177,7 @@ export const App: React.FC = () => {
       <main className="flex-1 max-w-3xl w-full mx-auto px-3 md:px-4 py-6 pb-12">
         {activeTab === 'banco' && (
           <div className="space-y-4">
+            {/* Seção de Filtros */}
             <FilterBankSection
               jsonFilesList={jsonFilesList}
               disciplinasDisponiveis={disciplinasDisponiveis}
@@ -199,6 +201,22 @@ export const App: React.FC = () => {
               onApplyFilters={handleApplyFilters}
             />
 
+            {/* 1. SELETOR DE "QUESTÕES POR PÁGINA" (TOPO) */}
+            {displayQuestions.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalQuestions={displayQuestions.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setCurrentPage(1); 
+                }}
+                mode="pageSizeOnly"
+              />
+            )}
+
+            {/* Lista de Questões */}
             <div className="space-y-4">
               {currentQuestionsBatchSlice.map((question) => {
                 const idComposto = `${(question as QuestionWithSource).origemJson || 'q'}-${question.id}`;
@@ -218,6 +236,18 @@ export const App: React.FC = () => {
                 </p>
               )}
             </div>
+
+            {/* 2. NAVEGAÇÃO ENTRE PÁGINAS < 1 2 3 > (RODAPÉ DA LISTA) */}
+            {displayQuestions.length > 0 && (
+              <Pagination
+                currentPage={currentPage}
+                totalQuestions={displayQuestions.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+                mode="navigationOnly"
+              />
+            )}
           </div>
         )}
 
@@ -229,6 +259,20 @@ export const App: React.FC = () => {
             />
           ) : (
             <div className="space-y-4">
+              {/* Seletor de Quantidade no Simulado */}
+              <Pagination
+                currentPage={currentPage}
+                totalQuestions={displayQuestions.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setCurrentPage(1); 
+                }}
+                mode="pageSizeOnly"
+              />
+
+              {/* Questões do Simulado */}
               {currentQuestionsBatchSlice.map((question) => {
                 const idComposto = `${(question as QuestionWithSource).origemJson || 'q'}-${question.id}`;
                 return (
@@ -241,6 +285,16 @@ export const App: React.FC = () => {
                   />
                 );
               })}
+
+              {/* Navegação Numerada no Simulado */}
+              <Pagination
+                currentPage={currentPage}
+                totalQuestions={displayQuestions.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+                onPageSizeChange={setPageSize}
+                mode="navigationOnly"
+              />
             </div>
           )
         )}
@@ -248,23 +302,9 @@ export const App: React.FC = () => {
         {activeTab === 'analytics' && (
           <AnalyticsDashboard analytics={analytics} />
         )}
-
-        {/* Paginação */}
-        {activeTab !== 'analytics' && displayQuestions.length > 0 && (
-          <Pagination
-            currentPage={currentPage}
-            totalQuestions={displayQuestions.length}
-            pageSize={pageSize}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={(size) => {
-              setPageSize(size);
-              setCurrentPage(1); 
-            }}
-          />
-        )}
       </main>
 
-      {/* Rodapé */}
+      {/* Rodapé do site */}
       <Footer />
     </div>
   );

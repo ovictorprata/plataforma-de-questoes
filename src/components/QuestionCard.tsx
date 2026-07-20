@@ -1,8 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Scissors, CheckCircle2, XCircle, Hand, X, Flag, HelpCircle, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  Scissors,
+  CheckCircle2,
+  XCircle,
+  Hand,
+  X,
+  Flag,
+  HelpCircle,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  ZoomIn,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Question } from '../types/question';
 import { MathText } from './MathText';
+import { getTextoAssociadoById } from '../utils/loadTextoAssociado';
 
 interface QuestionCardProps {
   question: Question;
@@ -12,24 +25,31 @@ interface QuestionCardProps {
 
 const HIDE_TIP_EVENT = 'simulado_pro_hide_swipe_tip_event';
 
-export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLogged, onReportIssue }) => {
+export const QuestionCard: React.FC<QuestionCardProps> = ({
+  question,
+  onAnswerLogged,
+  onReportIssue,
+}) => {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [struckOptions, setStruckOptions] = useState<string[]>([]);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
-  
-  // Estado único para o texto de apoio (fechado por padrão em todas as telas)
   const [showTextoAssociado, setShowTextoAssociado] = useState<boolean>(false);
 
+  // Modal Lightbox para imagens do enunciado e alternativas
+  const [activeImage, setActiveImage] = useState<string | null>(null);
+
+  // Dica do swipe mobile
   const [showSwipeTip, setShowSwipeTip] = useState<boolean>(() => {
     return localStorage.getItem('simulado_pro_hide_swipe_tip') !== 'true';
   });
 
+  // Gestos de Swipe
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const [touchCurrentX, setTouchCurrentX] = useState<number | null>(null);
   const [swipingKey, setSwipingKey] = useState<string | null>(null);
   const [isSwipingActive, setIsSwipingActive] = useState<boolean>(false);
 
-  const SWIPE_THRESHOLD = 50; 
+  const SWIPE_THRESHOLD = 50;
 
   useEffect(() => {
     const handleGlobalHideTip = () => setShowSwipeTip(false);
@@ -46,6 +66,9 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
       window.dispatchEvent(new Event(HIDE_TIP_EVENT));
     }
   };
+
+  // ✅ Busca o objeto de texto diretamente passando a string ID (ex: "q-2015-001_002_003...")
+  const textoApoio = getTextoAssociadoById(question.texto_associado);
 
   const handleTouchStart = (key: string, e: React.TouchEvent) => {
     if (isSubmitted) return;
@@ -64,7 +87,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
       const diffX = touchCurrentX - touchStartX;
       if (Math.abs(diffX) > SWIPE_THRESHOLD) {
         setIsSwipingActive(true);
-        toggleStrike(key); 
+        toggleStrike(key);
       }
     }
     setTouchStartX(null);
@@ -92,8 +115,8 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
   };
 
   return (
-    <div className="w-full bg-white rounded-xl border border-slate-100 shadow-sm p-6 mb-4">
-      {/* Cabeçalho Taxonomia */}
+    <div className="w-full bg-white rounded-xl border border-slate-100 shadow-sm p-6 mb-4 relative">
+      {/* 1. Cabeçalho / Taxonomia */}
       <div className="flex flex-wrap items-center justify-between text-xs font-semibold text-slate-400 gap-2 mb-4">
         <div className="flex items-center gap-1 flex-wrap">
           <span className="text-indigo-600 font-bold">
@@ -103,14 +126,22 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
           {question.taxonomia?.topico && <span>• {question.taxonomia.topico}</span>}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {question.banca && <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">{question.banca}</span>}
-          {question.orgao && <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">{question.orgao}</span>}
+          {question.banca && (
+            <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">
+              {question.banca}
+            </span>
+          )}
+          {question.orgao && (
+            <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">
+              {question.orgao}
+            </span>
+          )}
           {question.ano && <span>{question.ano}</span>}
         </div>
       </div>
 
-      {/* TEXTO ASSOCIADO / DE APOIO (Accordion Colapsável Unificado para Mobile e Desktop) */}
-      {question.texto_associado && (
+      {/* 2. Texto Associado / De Apoio */}
+      {textoApoio && (
         <div className="mb-6 border border-slate-200 rounded-xl bg-slate-50/70 overflow-hidden">
           <button
             type="button"
@@ -119,7 +150,9 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
           >
             <div className="flex items-center gap-2">
               <FileText className="w-4 h-4 text-indigo-600 shrink-0" />
-              <span className="truncate">{question.texto_associado.titulo || "Ler Texto de Apoio"}</span>
+              <span className="truncate">
+                {textoApoio.titulo || 'Ler Texto de Apoio'}
+              </span>
             </div>
             {showTextoAssociado ? (
               <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />
@@ -130,90 +163,136 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
 
           {showTextoAssociado && (
             <div className="p-4 text-xs md:text-sm text-slate-600 leading-relaxed space-y-3 max-h-80 overflow-y-auto border-t border-slate-200/60 bg-white">
-              <p className="whitespace-pre-line">{question.texto_associado.conteudo}</p>
-              {question.texto_associado.imagem && (
-                <div className="flex justify-center pt-2">
-                  <img
-                    src={question.texto_associado.imagem}
-                    alt="Suporte do texto associado"
-                    className="max-h-64 object-contain rounded-lg border border-slate-200"
-                  />
-                </div>
+              <p className="whitespace-pre-line">{textoApoio.conteudo}</p>
+              
+              {textoApoio.fonte && (
+                <p className="text-[11px] text-slate-400 italic pt-1 border-t border-slate-100">
+                  {textoApoio.fonte}
+                </p>
               )}
             </div>
           )}
         </div>
       )}
 
-      {/* Enunciado Dinâmico */}
+      {/* 3. Enunciado Dinâmico */}
       <div className="space-y-4 mb-6">
         {question.suporte_midia?.imagem_inicio && (
           <div className="rounded-lg overflow-hidden border border-slate-100 max-w-full flex justify-center bg-slate-50 p-2">
-            <img src={question.suporte_midia.imagem_inicio} alt="Suporte Início" className="max-h-64 object-contain" />
+            <div
+              className="relative group cursor-zoom-in"
+              onClick={() => setActiveImage(question.suporte_midia!.imagem_inicio!)}
+            >
+              <img
+                src={question.suporte_midia.imagem_inicio}
+                alt="Suporte Início"
+                className="max-h-64 object-contain hover:opacity-90 transition-opacity"
+              />
+              <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-lg">
+                <ZoomIn className="w-6 h-6 text-white drop-shadow-md" />
+              </div>
+            </div>
           </div>
         )}
 
         {question.enunciado_inicio && (
           <p className="text-slate-800 text-base leading-relaxed font-medium whitespace-pre-line">
-            <span className="text-indigo-600 font-bold mr-1.5">{question.id.toUpperCase()}.</span>
-            <MathText text={question.enunciado_inicio} />
+            <span className="text-indigo-600 font-bold mr-1.5">
+              {question.id.toUpperCase()}.
+            </span>
+            <MathText text={question.enunciado_inicio} variant="enunciado" />
           </p>
         )}
 
         {question.suporte_midia?.imagem_meio && (
           <div className="rounded-lg overflow-hidden border border-slate-100 max-w-full flex justify-center bg-slate-50 p-2">
-            <img src={question.suporte_midia.imagem_meio} alt="Suporte Meio" className="max-h-64 object-contain" />
+            <div
+              className="relative group cursor-zoom-in"
+              onClick={() => setActiveImage(question.suporte_midia!.imagem_meio!)}
+            >
+              <img
+                src={question.suporte_midia.imagem_meio}
+                alt="Suporte Meio"
+                className="max-h-64 object-contain hover:opacity-90 transition-opacity"
+              />
+              <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-lg">
+                <ZoomIn className="w-6 h-6 text-white drop-shadow-md" />
+              </div>
+            </div>
           </div>
         )}
 
         {question.enunciado_fim && (
           <p className="text-slate-800 text-base leading-relaxed font-medium whitespace-pre-line">
             {!question.enunciado_inicio && (
-              <span className="text-indigo-600 font-bold mr-1.5">{question.id.toUpperCase()}.</span>
+              <span className="text-indigo-600 font-bold mr-1.5">
+                {question.id.toUpperCase()}.
+              </span>
             )}
-            <MathText text={question.enunciado_fim} />
+            <MathText text={question.enunciado_fim} variant="enunciado" />
           </p>
         )}
 
         {question.suporte_midia?.imagem_fim && (
           <div className="rounded-lg overflow-hidden border border-slate-100 max-w-full flex justify-center bg-slate-50 p-2">
-            <img src={question.suporte_midia.imagem_fim} alt="Suporte Fim" className="max-h-64 object-contain" />
+            <div
+              className="relative group cursor-zoom-in"
+              onClick={() => setActiveImage(question.suporte_midia!.imagem_fim!)}
+            >
+              <img
+                src={question.suporte_midia.imagem_fim}
+                alt="Suporte Fim"
+                className="max-h-64 object-contain hover:opacity-90 transition-opacity"
+              />
+              <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-lg">
+                <ZoomIn className="w-6 h-6 text-white drop-shadow-md" />
+              </div>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Dica do Swipe Mobile */}
+      {/* 4. Dica do Swipe Mobile */}
       {showSwipeTip && !isSubmitted && (
         <div className="sm:hidden mb-3 bg-indigo-50/90 border border-indigo-100 rounded-xl p-3 space-y-2 text-xs text-indigo-950">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2">
               <Hand className="w-4 h-4 text-indigo-600 animate-pulse shrink-0" />
-              <span><strong>Dica:</strong> Arraste a alternativa para o lado para eliminá-la!</span>
+              <span>
+                <strong>Dica:</strong> Arraste a alternativa para o lado para eliminá-la!
+              </span>
             </div>
-            <button onClick={handleCloseTipOnly} className="p-1 text-indigo-400 hover:text-indigo-700 rounded-md shrink-0">
+            <button
+              onClick={handleCloseTipOnly}
+              className="p-1 text-indigo-400 hover:text-indigo-700 rounded-md shrink-0"
+            >
               <X className="w-4 h-4" />
             </button>
           </div>
           <div className="pt-1.5 border-t border-indigo-100/60 flex items-center gap-2">
             <label className="flex items-center gap-2 cursor-pointer select-none text-[11px] text-indigo-700 font-medium">
-              <input type="checkbox" onChange={handleNeverShowAgain} className="w-3.5 h-3.5 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500 accent-indigo-600" />
+              <input
+                type="checkbox"
+                onChange={handleNeverShowAgain}
+                className="w-3.5 h-3.5 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500 accent-indigo-600"
+              />
               <span>Não mostrar novamente</span>
             </label>
           </div>
         </div>
       )}
 
-      {/* Lista de Alternativas */}
+      {/* 5. Lista de Alternativas */}
       <div className="space-y-2 mb-6">
         {question.alternativas.map((alt) => {
           const key = alt.chave;
           const isStruck = struckOptions.includes(key);
           const isSelected = selectedKey === key;
-          
+
           let borderStyle = 'border-slate-200 hover:border-slate-300 bg-white';
           if (isSelected) borderStyle = 'border-indigo-600 bg-indigo-50/40';
           if (isStruck) borderStyle = 'border-slate-100 bg-slate-50/60 opacity-40';
-          
+
           if (isSubmitted) {
             if (key === question.gabarito) {
               borderStyle = 'border-emerald-500 bg-emerald-50 text-emerald-900 font-medium';
@@ -235,9 +314,10 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
           };
 
           const isThisSwiping = swipingKey === key;
-          const swipeOffset = (isThisSwiping && touchStartX !== null && touchCurrentX !== null)
-            ? touchCurrentX - touchStartX
-            : 0;
+          const swipeOffset =
+            isThisSwiping && touchStartX !== null && touchCurrentX !== null
+              ? touchCurrentX - touchStartX
+              : 0;
 
           return (
             <div
@@ -253,11 +333,11 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
               className={`group p-3.5 rounded-xl border text-slate-700 transition-colors text-sm cursor-pointer relative select-none touch-pan-y ${borderStyle}`}
             >
               <div className="flex items-center gap-3">
-                
-                {/* Ícones e Letra (Visíveis no Desktop, ocultos no Mobile) */}
+                {/* Tesoura + Letra (apenas no Desktop) */}
                 <div className="hidden sm:flex items-center gap-2 shrink-0">
                   {!isSubmitted ? (
                     <button
+                      type="button"
                       onClick={(e) => toggleStrike(key, e)}
                       title="Eliminar alternativa"
                       className={`p-1.5 rounded-md hover:bg-slate-100 transition-colors shrink-0 text-slate-400 ${
@@ -270,24 +350,43 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
                     <div className="w-6 shrink-0" />
                   )}
 
-                  <span className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold border shrink-0 transition-colors ${
-                    isSelected ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-50 border-slate-200 text-slate-500'
-                  }`}>
+                  <span
+                    className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold border shrink-0 transition-colors ${
+                      isSelected
+                        ? 'bg-indigo-600 text-white border-indigo-600'
+                        : 'bg-slate-50 border-slate-200 text-slate-500'
+                    }`}
+                  >
                     {key}
                   </span>
                 </div>
 
-                {/* Texto da Alternativa */}
+                {/* Conteúdo da Alternativa */}
                 <div className={`flex-1 leading-relaxed ${isStruck ? 'line-through select-none' : ''}`}>
-                  {alt.texto && <MathText text={alt.texto} />}
+                  {alt.texto && <MathText text={alt.texto} variant="alternativa" />}
                   {alt.imagem && (
                     <div className="mt-1 max-w-xs">
-                      <img src={alt.imagem} alt={`Alternativa ${key}`} className="max-h-36 object-contain rounded border border-slate-100 bg-white p-1" />
+                      <div
+                        className="relative group cursor-zoom-in"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveImage(alt.imagem!);
+                        }}
+                      >
+                        <img
+                          src={alt.imagem}
+                          alt={`Alternativa ${key}`}
+                          className="max-h-36 object-contain rounded border border-slate-100 bg-white p-1 hover:opacity-90 transition-opacity"
+                        />
+                        <div className="absolute inset-0 bg-slate-900/10 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded">
+                          <ZoomIn className="w-5 h-5 text-white drop-shadow-md" />
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {/* Feedback */}
+                {/* Feedback de Gabarito */}
                 {isSubmitted && key === question.gabarito && (
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                 )}
@@ -300,7 +399,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
         })}
       </div>
 
-      {/* Explicação / Gabarito Comentado */}
+      {/* 6. Explicação / Gabarito Comentado */}
       <AnimatePresence>
         {isSubmitted && (
           <motion.div
@@ -314,15 +413,16 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
               <span>Gabarito Comentado (Alternativa {question.gabarito}):</span>
             </div>
             <p className="leading-relaxed pl-6 text-slate-600 whitespace-pre-line">
-              {question.explicacao || "Nenhuma explicação cadastrada para esta questão."}
+              {question.explicacao || 'Nenhuma explicação cadastrada para esta questão.'}
             </p>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Rodapé do Card */}
+      {/* 7. Rodapé do Card */}
       <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-2">
         <button
+          type="button"
           onClick={() => onReportIssue && onReportIssue(question.id)}
           className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-rose-600 transition-colors py-1.5 px-2 rounded-lg hover:bg-rose-50/50"
           title="Reportar erro nesta questão"
@@ -347,6 +447,41 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({ question, onAnswerLo
           </AnimatePresence>
         </div>
       </div>
+
+      {/* 8. Lightbox Zoom da Imagem */}
+      <AnimatePresence>
+        {activeImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setActiveImage(null)}
+            className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 cursor-zoom-out"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative max-w-5xl max-h-[90vh] flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={activeImage}
+                alt="Imagem ampliada"
+                className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl bg-white p-2"
+              />
+              <button
+                type="button"
+                onClick={() => setActiveImage(null)}
+                className="absolute -top-4 -right-4 bg-white text-slate-700 hover:text-rose-600 p-2 rounded-full shadow-lg transition-colors border border-slate-200"
+                title="Fechar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

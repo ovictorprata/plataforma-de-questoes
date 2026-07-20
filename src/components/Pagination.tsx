@@ -7,6 +7,7 @@ interface PaginationProps {
   pageSize: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
+  mode?: 'full' | 'pageSizeOnly' | 'navigationOnly';
 }
 
 export const Pagination: React.FC<PaginationProps> = ({
@@ -15,16 +16,18 @@ export const Pagination: React.FC<PaginationProps> = ({
   pageSize,
   onPageChange,
   onPageSizeChange,
+  mode = 'full',
 }) => {
   const totalPages = Math.ceil(totalQuestions / pageSize);
 
-  if (totalPages <= 1) return null;
+  if (totalPages <= 0) return null;
 
-  // Lógica para gerar a lista de páginas com reticências (...)
+  // Função para gerar as páginas visíveis com reticências (...)
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
+    const maxVisiblePages = 5;
 
-    if (totalPages <= 7) {
+    if (totalPages <= maxVisiblePages + 2) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
       pages.push(1);
@@ -44,27 +47,106 @@ export const Pagination: React.FC<PaginationProps> = ({
         pages.push('...');
       }
 
-      if (!pages.includes(totalPages)) {
-        pages.push(totalPages);
-      }
+      pages.push(totalPages);
     }
 
     return pages;
   };
 
-  return (
-    <div className="mt-8 mb-6 flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-      {/* Seletor de quantidade por página */}
-      <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-        <span>Questões por página:</span>
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+  // 1. Apenas o Seletor de Quantidade (Topo)
+  if (mode === 'pageSizeOnly') {
+    return (
+      <div className="flex items-center justify-between bg-white border border-slate-200/80 rounded-xl px-4 py-2.5 shadow-sm text-xs text-slate-600">
+        <span className="font-medium">Questões por página:</span>
+        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
           {[5, 10, 20].map((size) => (
             <button
               key={size}
+              type="button"
               onClick={() => onPageSizeChange(size)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+              className={`px-3 py-1 rounded-md font-semibold transition-colors ${
                 pageSize === size
                   ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+              }`}
+            >
+              {size}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // 2. Apenas a Navegação de Páginas Limpa (Rodapé)
+  if (mode === 'navigationOnly') {
+    return (
+      <div className="flex items-center justify-center gap-1.5 pt-4">
+        {/* Botão Anterior */}
+        <button
+          type="button"
+          disabled={currentPage === 1}
+          onClick={() => onPageChange(currentPage - 1)}
+          className="p-2 rounded-xl border border-slate-200/80 bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+
+        {/* Números das Páginas com Truncamento */}
+        {getPageNumbers().map((page, index) => {
+          if (page === '...') {
+            return (
+              <span key={`dots-${index}`} className="px-2 text-slate-400 text-xs font-bold">
+                ...
+              </span>
+            );
+          }
+
+          const isCurrent = page === currentPage;
+
+          return (
+            <button
+              key={page}
+              type="button"
+              onClick={() => onPageChange(page as number)}
+              className={`min-w-[32px] h-8 px-2 rounded-xl text-xs font-bold transition-all shadow-sm ${
+                isCurrent
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              {page}
+            </button>
+          );
+        })}
+
+        {/* Botão Próximo */}
+        <button
+          type="button"
+          disabled={currentPage === totalPages}
+          onClick={() => onPageChange(currentPage + 1)}
+          className="p-2 rounded-xl border border-slate-200/80 bg-white text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  }
+
+  // 3. Padrão Completo
+  return (
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border border-slate-200/80 rounded-xl p-3 shadow-sm text-xs text-slate-600">
+      <div className="flex items-center gap-2">
+        <span className="font-medium">Questões por página:</span>
+        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+          {[5, 10, 20].map((size) => (
+            <button
+              key={size}
+              type="button"
+              onClick={() => onPageSizeChange(size)}
+              className={`px-3 py-1 rounded-md font-semibold transition-colors ${
+                pageSize === size
+                  ? 'bg-indigo-600 text-white'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -74,49 +156,23 @@ export const Pagination: React.FC<PaginationProps> = ({
         </div>
       </div>
 
-      {/* Números da Paginação */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1">
         <button
-          onClick={() => onPageChange(currentPage - 1)}
+          type="button"
           disabled={currentPage === 1}
-          className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-          title="Página Anterior"
+          onClick={() => onPageChange(currentPage - 1)}
+          className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-
-        {getPageNumbers().map((page, index) => {
-          if (page === '...') {
-            return (
-              <span key={`dots-${index}`} className="px-2 text-xs font-bold text-slate-400 select-none">
-                ...
-              </span>
-            );
-          }
-
-          const pageNum = page as number;
-          const isSelected = currentPage === pageNum;
-
-          return (
-            <button
-              key={pageNum}
-              onClick={() => onPageChange(pageNum)}
-              className={`min-w-[36px] h-9 px-2.5 rounded-xl text-xs font-bold transition-all ${
-                isSelected
-                  ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200'
-                  : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200/60'
-              }`}
-            >
-              {pageNum}
-            </button>
-          );
-        })}
-
+        <span className="px-2 font-medium">
+          Página {currentPage} de {totalPages}
+        </span>
         <button
-          onClick={() => onPageChange(currentPage + 1)}
+          type="button"
           disabled={currentPage === totalPages}
-          className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-          title="Próxima Página"
+          onClick={() => onPageChange(currentPage + 1)}
+          className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-40"
         >
           <ChevronRight className="w-4 h-4" />
         </button>

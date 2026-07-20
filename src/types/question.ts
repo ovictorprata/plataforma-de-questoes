@@ -1,42 +1,43 @@
 export interface Taxonomia {
   disciplina: string;
-  bloco?: string;
-  topico?: string;
-  subtopico?: string;
+  bloco?: string | null;
+  topico?: string | null;
+  subtopico?: string | null;
 }
 
-export interface TextoAssociado {
-  id_texto?: string;
-  titulo?: string;
+// Interface para o item dentro do seu arquivo JSON de textos (ex: textos_apoio.json)
+export interface TextoApoioItem {
+  id: string;
+  titulo?: string | null;
+  fonte?: string | null;
   conteudo: string;
-  imagem?: string;
 }
 
 export interface SuporteMidia {
-  imagem_inicio?: string;
-  imagem_meio?: string;
-  imagem_fim?: string;
-  layout_imagem?: string;
+  imagem_inicio?: string | null;
+  imagem_meio?: string | null;
+  imagem_fim?: string | null;
+  layout_imagem?: string | null;
 }
 
 export interface Alternativa {
   chave: string;
-  texto?: string;
-  imagem?: string;
+  texto?: string | null;
+  imagem?: string | null;
 }
 
 export interface Question {
   id: string;
-  banca?: string;
-  orgao?: string;
-  cargo?: string;
+  banca?: string | null;
+  orgao?: string | null;
+  cargo?: string | null;
   ano: number;
   taxonomia: Taxonomia;
-  texto_associado?: TextoAssociado;
-  suporte_midia?: SuporteMidia;
-  enunciado_inicio?: string;
-  enunciado_fim?: string;
+  texto_associado?: string | null; // 👈 Agora é uma string simples ou null
+  suporte_midia?: SuporteMidia | null;
+  enunciado_inicio?: string | null;
+  enunciado_fim?: string | null;
   alternativas: Alternativa[];
   gabarito: string;
-  explicacao?: string;
+  explicacao?: string | null;
 }
