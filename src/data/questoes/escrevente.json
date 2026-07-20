@@ -3791,7 +3791,7 @@
       "layout_imagem": null
     },
     "enunciado_inicio": "Em um documento do MS-Word 2010, existia uma tabela com a seguinte aparência:",
-    "enunciado_fim": "Um usuário realizou duas ações sobre essa tabela, ambas feitas com ela selecionada, de modo que essa tabela ficou com a aparência apresentada a seguir:\n\nConsiderando que essas ações foram realizadas por meio da seleção de opções de borda acessíveis a partir do grupo Parágrafo, da guia Página Inicial, assinale a alternativa que contém duas possíveis opções de terem sido selecionadas e que produzem esse efeito.",
+    "enunciado_fim": "Considerando que essas ações foram realizadas por meio da seleção de opções de borda acessíveis a partir do grupo Parágrafo, da guia Página Inicial, assinale a alternativa que contém duas possíveis opções de terem sido selecionadas e que produzem esse efeito.",
     "alternativas": [
       {
         "chave": "A",
@@ -5353,11 +5353,12 @@
     },
     "texto_associado": null,
     "suporte_midia": {
-      "imagem_inicio": "./imagens/q-2017-010_011-i.png",
+      "imagem_inicio": null,
+      "imagem_meio": "./imagens/q-2017-010_011_012_013-m.png",
       "imagem_fim": null,
       "layout_imagem": null
     },
-    "enunciado_inicio": null,
+    "enunciado_inicio": "Leia o texto dos quadrinhos a seguir:",
     "enunciado_fim": "É correto afirmar que, na fala da personagem, no último quadrinho, está implícita a ideia de que:",
     "alternativas": [
       {
@@ -5401,10 +5402,12 @@
     },
     "texto_associado": null,
     "suporte_midia": {
-      "imagem_inicio": "./imagens/q-2017-010_011-i.png",
+      "imagem_inicio": null,
+      "imagem_meio": "./imagens/q-2017-010_011_012_013-m.png",
+      "imagem_fim": null,
       "layout_imagem": null
     },
-    "enunciado_inicio": null,
+    "enunciado_inicio": "Leia o texto dos quadrinhos a seguir:",
     "enunciado_fim": "Assinale a alternativa que dá outra redação à fala dos quadrinhos, seguindo a norma-padrão de regência, conjugação de verbos e emprego do sinal indicativo de crase.",
     "alternativas": [
       {
@@ -5449,10 +5452,11 @@
     "texto_associado": null,
     "suporte_midia": {
       "imagem_inicio": null,
-      "imagem_fim": "./imagens/q-2017-010.png",
+      "imagem_meio": "./imagens/q-2017-010_011_012_013-m.png",
+      "imagem_fim": null,
       "layout_imagem": null
     },
-    "enunciado_inicio": null,
+    "enunciado_inicio": "Leia o texto dos quadrinhos a seguir:",
     "enunciado_fim": "A relação de sentido que há entre as partes sinalizadas no período – (I) Se você não me ajudar com a lição de casa, (II) eu vou processar você – é:",
     "alternativas": [
       {
@@ -5497,10 +5501,11 @@
     "texto_associado": null,
     "suporte_midia": {
       "imagem_inicio": null,
-      "imagem_fim": "./imagens/q-2017-010.png",
+      "imagem_meio": "./imagens/q-2017-010_011_012_013-m.png",
+      "imagem_fim": null,
       "layout_imagem": null
     },
-    "enunciado_inicio": null,
+    "enunciado_inicio": "Leia o texto dos quadrinhos a seguir:",
     "enunciado_fim": "Assinale a alternativa em que a frase baseada nas falas dos quadrinhos apresenta emprego e colocação de pronomes de acordo com a norma-padrão.",
     "alternativas": [
       {
