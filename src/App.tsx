@@ -6,7 +6,10 @@ import { QuestionCard } from './components/QuestionCard';
 import { Pagination } from './components/Pagination';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { Footer } from './components/Footer';
+import { SimuladoTimer } from './components/SimuladoTimer';
+import { SimuladoResultSummary } from './components/SimuladoResultSummary';
 import { useLocalAnalytics } from './hooks/useLocalAnalytics';
+import { CheckCircle2, RefreshCw } from 'lucide-react';
 import type { Question } from './types/question';
 
 export interface QuestionWithSource extends Question {
@@ -26,6 +29,12 @@ export const App: React.FC = () => {
   const [simuladoQuestions, setSimuladoQuestions] = useState<Question[]>([]);
   const [jsonFilesList, setJsonFilesList] = useState<string[]>([]);
   
+  // Estados de Controle do Simulado
+  const [simuladoAnswers, setSimuladoAnswers] = useState<Record<string, string>>({});
+  const [isSimuladoSubmitted, setIsSimuladoSubmitted] = useState<boolean>(false);
+  const [simuladoStartTime, setSimuladoStartTime] = useState<number | null>(null);
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
+
   // Estados temporários dos Filtros
   const [tempJsonFilter, setTempJsonFilter] = useState<string[]>([]);
   const [tempDisciplinaFilter, setTempDisciplinaFilter] = useState<string[]>([]);
@@ -48,7 +57,6 @@ export const App: React.FC = () => {
   useEffect(() => {
     async function carregarTodasAsQuestoes() {
       try {
-        // Carrega apenas os arquivos JSON de questões na pasta /data/questoes/
         const modulos = import.meta.glob<JsonModule>('./data/questoes/*.json');
         const todasAsPromessas: Promise<{ mod: JsonModule; nomeLimpo: string }>[] = [];
         const nomesArquivos: string[] = [];
@@ -76,7 +84,6 @@ export const App: React.FC = () => {
     carregarTodasAsQuestoes();
   }, []);
 
-  // Extrai a lista de todas as disciplinas únicas
   const disciplinasDisponiveis = useMemo(() => {
     return Array.from(
       new Set(
@@ -85,7 +92,6 @@ export const App: React.FC = () => {
     );
   }, [masterQuestions]);
 
-  // Mapeamento que associa cada questão à sua disciplina e bloco
   const questoesMapeamento = useMemo(() => {
     return masterQuestions.map((q) => ({
       disciplina: q.taxonomia?.disciplina || 'Geral',
@@ -93,12 +99,10 @@ export const App: React.FC = () => {
     }));
   }, [masterQuestions]);
 
-  // Extrai os anos disponíveis
   const anosDisponiveis = useMemo(() => {
     return Array.from(new Set(masterQuestions.map((q) => q.ano))).sort((a, b) => b - a);
   }, [masterQuestions]);
 
-  // Aplica a lógica de filtragem nas questões
   const displayQuestions = useMemo(() => {
     if (activeTab === 'simulado') {
       return simuladoQuestions;
@@ -158,7 +162,59 @@ export const App: React.FC = () => {
 
   const handleSimuladoGeneration = (generatedQuestions: Question[]) => {
     setSimuladoQuestions(generatedQuestions);
+    setSimuladoAnswers({});
+    setIsSimuladoSubmitted(false);
+    setSimuladoStartTime(Date.now()); // ⏱️ Marca o início do simulado
+    setElapsedSeconds(0);
     setCurrentPage(1); 
+  };
+
+  const handleResetSimulado = () => {
+    setSimuladoQuestions([]);
+    setSimuladoAnswers({});
+    setIsSimuladoSubmitted(false);
+    setSimuladoStartTime(null);
+    setElapsedSeconds(0);
+    setCurrentPage(1);
+  };
+
+  const handleSelectSimuladoAnswer = (idComposto: string, letra: string) => {
+    setSimuladoAnswers((prev) => ({
+      ...prev,
+      [idComposto]: letra,
+    }));
+  };
+
+  const handleFinishSimulado = () => {
+    const total = simuladoQuestions.length;
+    const respondidas = Object.keys(simuladoAnswers).length;
+
+    if (respondidas < total) {
+      const confirma = window.confirm(
+        `Você respondeu ${respondidas} de ${total} questões. Deseja realmente finalizar o simulado e ver seu resultado?`
+      );
+      if (!confirma) return;
+    }
+
+    // Calcula tempo gasto em segundos
+    if (simuladoStartTime) {
+      const segundosDecorridos = Math.max(1, Math.round((Date.now() - simuladoStartTime) / 1000));
+      setElapsedSeconds(segundosDecorridos);
+    }
+
+    setIsSimuladoSubmitted(true);
+
+    // Registra todas as respostas no histórico/analytics
+    simuladoQuestions.forEach((q) => {
+      const idComposto = `${(q as QuestionWithSource).origemJson || 'q'}-${q.id}`;
+      const resposta = simuladoAnswers[idComposto];
+      if (resposta) {
+        logAnswer(idComposto, q.taxonomia?.disciplina || 'Geral', resposta === q.gabarito);
+      }
+    });
+
+    // Leva suavemente ao topo
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleNavigate = (aba: 'banco' | 'simulado' | 'analytics') => {
@@ -175,9 +231,9 @@ export const App: React.FC = () => {
       <Header activeTab={activeTab} onNavigate={handleNavigate} />
 
       <main className="flex-1 max-w-3xl w-full mx-auto px-3 md:px-4 py-6 pb-12">
+        {/* ABA BANCO DE QUESTÕES */}
         {activeTab === 'banco' && (
           <div className="space-y-4">
-            {/* Seção de Filtros */}
             <FilterBankSection
               jsonFilesList={jsonFilesList}
               disciplinasDisponiveis={disciplinasDisponiveis}
@@ -201,7 +257,6 @@ export const App: React.FC = () => {
               onApplyFilters={handleApplyFilters}
             />
 
-            {/* 1. SELETOR DE "QUESTÕES POR PÁGINA" (TOPO) */}
             {displayQuestions.length > 0 && (
               <Pagination
                 currentPage={currentPage}
@@ -216,7 +271,6 @@ export const App: React.FC = () => {
               />
             )}
 
-            {/* Lista de Questões */}
             <div className="space-y-4">
               {currentQuestionsBatchSlice.map((question) => {
                 const idComposto = `${(question as QuestionWithSource).origemJson || 'q'}-${question.id}`;
@@ -237,7 +291,6 @@ export const App: React.FC = () => {
               )}
             </div>
 
-            {/* 2. NAVEGAÇÃO ENTRE PÁGINAS < 1 2 3 > (RODAPÉ DA LISTA) */}
             {displayQuestions.length > 0 && (
               <Pagination
                 currentPage={currentPage}
@@ -251,6 +304,7 @@ export const App: React.FC = () => {
           </div>
         )}
 
+        {/* ABA SIMULADO */}
         {activeTab === 'simulado' && (
           displayQuestions.length === 0 ? (
             <ExamSetup 
@@ -259,7 +313,39 @@ export const App: React.FC = () => {
             />
           ) : (
             <div className="space-y-4">
-              {/* Seletor de Quantidade no Simulado */}
+              {/* Cronômetro (Ocultado quando o simulado for finalizado) */}
+              {!isSimuladoSubmitted && (
+                <SimuladoTimer
+                  key={simuladoQuestions.length}
+                  totalQuestions={simuladoQuestions.length}
+                  onResetSimulado={handleResetSimulado}
+                />
+              )}
+
+              {/* Botão de Novo Simulado (Aparece no topo caso o cronômetro esteja oculto) */}
+              {isSimuladoSubmitted && (
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleResetSimulado}
+                    className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-sm"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Gerar novo simulado</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Quadro Resumo do Simulado com Tempo Médio */}
+              {isSimuladoSubmitted && (
+                <SimuladoResultSummary
+                  questions={simuladoQuestions}
+                  answers={simuladoAnswers}
+                  tempoTotalSegundos={elapsedSeconds}
+                />
+              )}
+
+              {/* Seletor de Quantidade por página */}
               <Pagination
                 currentPage={currentPage}
                 totalQuestions={displayQuestions.length}
@@ -272,21 +358,42 @@ export const App: React.FC = () => {
                 mode="pageSizeOnly"
               />
 
-              {/* Questões do Simulado */}
-              {currentQuestionsBatchSlice.map((question) => {
-                const idComposto = `${(question as QuestionWithSource).origemJson || 'q'}-${question.id}`;
-                return (
-                  <QuestionCard
-                    key={idComposto}
-                    question={question}
-                    onAnswerLogged={(isCorrect) =>
-                      logAnswer(idComposto, question.taxonomia?.disciplina || 'Geral', isCorrect)
-                    }
-                  />
-                );
-              })}
+              {/* Lista de Questões do Simulado */}
+              <div className="space-y-4">
+                {currentQuestionsBatchSlice.map((question) => {
+                  const idComposto = `${(question as QuestionWithSource).origemJson || 'q'}-${question.id}`;
+                  return (
+                    <QuestionCard
+                      key={idComposto}
+                      question={question}
+                      isSimulado={true}
+                      isSubmitted={isSimuladoSubmitted}
+                      selectedAnswer={simuladoAnswers[idComposto] || null}
+                      onSelectAnswer={(letra) => handleSelectSimuladoAnswer(idComposto, letra)}
+                    />
+                  );
+                })}
+              </div>
 
-              {/* Navegação Numerada no Simulado */}
+              {/* Card de Finalização do Simulado */}
+              {!isSimuladoSubmitted && (
+                <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 mt-6">
+                  <span className="text-xs text-slate-500 font-medium">
+                    Progresso: <strong className="text-slate-800">{Object.keys(simuladoAnswers).length}</strong> de <strong className="text-slate-800">{simuladoQuestions.length}</strong> questões respondidas
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={handleFinishSimulado}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-6 py-3 rounded-xl transition-all shadow-sm"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Finalizar e Ver Resultado</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Navegação entre páginas */}
               <Pagination
                 currentPage={currentPage}
                 totalQuestions={displayQuestions.length}
@@ -299,12 +406,12 @@ export const App: React.FC = () => {
           )
         )}
 
+        {/* ABA ANALYTICS */}
         {activeTab === 'analytics' && (
           <AnalyticsDashboard analytics={analytics} />
         )}
       </main>
 
-      {/* Rodapé do site */}
       <Footer />
     </div>
   );
