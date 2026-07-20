@@ -1,113 +1,110 @@
 import React, { useState } from 'react';
-import { Shuffle, Layers } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Play, Sparkles } from 'lucide-react';
+import type { Question } from '../types/question';
 
-export interface Question {
-  id: string;
-  bloco: string;
-  enunciado: string;
-  alternativas: Record<string, string>;
-  gabarito: string;
-  ano: number;
-  imagem_antes: string | null;
-  imagem_depois: string | null;
-}
-
-interface ExamSetupProps {
+export interface ExamSetupProps {
   questionsMasterList: Question[];
   onGenerate: (shuffledQuestions: Question[]) => void;
 }
 
 export const ExamSetup: React.FC<ExamSetupProps> = ({ questionsMasterList, onGenerate }) => {
-  const [selectedBlocos, setSelectedBlocos] = useState<string[]>([]);
-  const [quantity, setQuantity] = useState<number>(5);
+  const [selectedSubject, setSelectedSubject] = useState<string>('todos');
+  const [questionCount, setQuestionCount] = useState<number>(10);
 
-  // Derive unique subjects from master data
-  const uniqueBlocos = Array.from(new Set(questionsMasterList.map((q) => q.bloco)));
+  const disciplinasDisponiveis = Array.from(
+    new Set(
+      questionsMasterList.map(
+        (q) => q.taxonomia?.disciplina || q.taxonomia?.bloco || 'Geral'
+      )
+    )
+  );
 
-  const handleToggleBloco = (bloco: string) => {
-    setSelectedBlocos((prev) =>
-      prev.includes(bloco) ? prev.filter((b) => b !== bloco) : [...prev, bloco]
-    );
-  };
+  const handleStartExam = () => {
+    let pool = [...questionsMasterList];
 
-  const handleGenerate = () => {
-    // 1. Filter by selected subjects (or pull all if none selected)
-    const filtered = selectedBlocos.length > 0
-      ? questionsMasterList.filter((q) => selectedBlocos.includes(q.bloco))
-      : [...questionsMasterList];
-
-    // 2. The Randomization Trap Guard: Clone and Shuffle natively via Fisher-Yates
-    const shuffled = [...filtered];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    if (selectedSubject !== 'todos') {
+      pool = pool.filter(
+        (q) =>
+          q.taxonomia?.disciplina === selectedSubject ||
+          q.taxonomia?.bloco === selectedSubject
+      );
     }
 
-    // 3. Slice to selected quantity limit
-    const finalSelection = shuffled.slice(0, Math.min(quantity, shuffled.length));
-    onGenerate(finalSelection);
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+    const selectedBatch = shuffled.slice(0, questionCount);
+
+    onGenerate(selectedBatch);
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="w-full max-w-2xl mx-auto bg-white rounded-xl border border-slate-100 p-6 shadow-sm"
-    >
-      <div className="flex items-center gap-2 mb-6">
-        <Layers className="w-5 h-5 text-indigo-600" />
-        <h2 className="text-xl font-bold text-slate-800">Configurar Simulado</h2>
-      </div>
-
-      <div className="mb-6">
-        <label className="block text-sm font-semibold text-slate-700 mb-2">Selecionar Disciplinas (Blocos)</label>
-        <div className="flex flex-wrap gap-2">
-          {uniqueBlocos.map((bloco) => {
-            const isSelected = selectedBlocos.includes(bloco);
-            return (
-              <button
-                key={bloco}
-                onClick={() => handleToggleBloco(bloco)}
-                className={`px-3 py-1.5 rounded-lg text-sm transition-all border ${
-                  isSelected
-                    ? 'bg-indigo-50 border-indigo-200 text-indigo-700 font-medium'
-                    : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                {bloco}
-              </button>
-            );
-          })}
+    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-6 max-w-xl mx-auto my-8">
+      <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+        <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+          <Sparkles className="w-5 h-5" />
+        </div>
+        <div>
+          <h2 className="text-base font-bold text-slate-900">Configurar Novo Simulado</h2>
+          <p className="text-xs text-slate-500">Escolha a matéria e a quantidade de questões para praticar</p>
         </div>
       </div>
 
-      <div className="mb-6">
-        <label className="block text-sm font-semibold text-slate-700 mb-2">Quantidade de Questões</label>
-        <div className="flex gap-3">
-          {[5, 10, 20, 50].map((num) => (
-            <button
-              key={num}
-              onClick={() => setQuantity(num)}
-              className={`flex-1 py-2 text-center rounded-lg border text-sm transition-all ${
-                quantity === num
-                  ? 'bg-slate-900 border-slate-900 text-white font-medium shadow-sm'
-                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              {num}
-            </button>
-          ))}
+      <div className="space-y-4">
+        <div>
+          <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+            Filtrar por Disciplina / Matéria
+          </label>
+          <select
+            value={selectedSubject}
+            onChange={(e) => setSelectedSubject(e.target.value)}
+            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-700 focus:outline-none focus:border-indigo-600 transition-all"
+          >
+            <option value="todos">Todas as Disciplinas ({questionsMasterList.length} questões disponíveis)</option>
+            {disciplinasDisponiveis.map((disciplina) => {
+              const totalNaMateria = questionsMasterList.filter(
+                (q) =>
+                  q.taxonomia?.disciplina === disciplina ||
+                  q.taxonomia?.bloco === disciplina
+              ).length;
+              return (
+                <option key={disciplina} value={disciplina}>
+                  {disciplina} ({totalNaMateria} questões)
+                </option>
+              );
+            })}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-slate-600 mb-1.5">
+            Quantidade de Questões
+          </label>
+          <div className="grid grid-cols-4 gap-2">
+            {[5, 10, 20, 30].map((num) => (
+              <button
+                key={num}
+                type="button"
+                onClick={() => setQuestionCount(num)}
+                className={`py-2 rounded-xl text-xs font-bold border transition-all ${
+                  questionCount === num
+                    ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm'
+                    : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300'
+                }`}
+              >
+                {num} Qs
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       <button
-        onClick={handleGenerate}
-        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-sm"
+        onClick={handleStartExam}
+        disabled={questionsMasterList.length === 0}
+        className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white font-bold py-3 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-2 shadow-sm mt-2"
       >
-        <Shuffle className="w-4 h-4" />
-        Gerar Simulado
+        <Play className="w-4 h-4 fill-current" />
+        <span>Gerar Simulado Agora</span>
       </button>
-    </motion.div>
+    </div>
   );
 };

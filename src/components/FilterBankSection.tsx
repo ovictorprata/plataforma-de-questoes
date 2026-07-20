@@ -7,7 +7,6 @@ export interface FilterBankSectionProps {
   blocosDisponiveis: string[];
   anosDisponiveis: number[];
   
-  // Estados temporários
   tempJsonFilter: string[];
   setTempJsonFilter: React.Dispatch<React.SetStateAction<string[]>>;
   tempBlocoFilter: string[];
@@ -17,7 +16,6 @@ export interface FilterBankSectionProps {
   tempExcludeResolved: boolean;
   setTempExcludeResolved: React.Dispatch<React.SetStateAction<boolean>>;
   
-  // Estados já aplicados
   appliedJsonFilter: string[];
   appliedBlocoFilter: string[];
   appliedAnoFilter: number[];
@@ -44,14 +42,12 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
   appliedExcludeResolved,
   onApplyFilters,
 }) => {
-  // Exibe o botão "Limpar todos" se houver QUALQUER filtro temporário ativo/marcado
   const hasActiveSelections =
     tempJsonFilter.length > 0 ||
     tempBlocoFilter.length > 0 ||
     tempAnoFilter.length > 0 ||
     tempExcludeResolved;
 
-  // Comparador de arrays para identificar alterações pendentes
   const areArraysEqual = <T extends string | number>(a: T[], b: T[]) => {
     if (a.length !== b.length) return false;
     const sortedA = [...a].sort();
@@ -67,7 +63,6 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
 
   return (
     <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm space-y-4">
-      {/* Cabeçalho do Filtro */}
       <div className="flex items-center justify-between border-b border-slate-50 pb-2">
         <div className="flex items-center gap-2 text-slate-700 font-bold text-sm">
           <Filter className="w-4 h-4 text-indigo-600" />
@@ -80,7 +75,7 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
               setTempJsonFilter([]);
               setTempBlocoFilter([]);
               setTempAnoFilter([]);
-              setTempExcludeResolved(false); // Reset do checkbox
+              setTempExcludeResolved(false);
             }}
             className="text-xs text-rose-600 hover:text-rose-800 font-medium transition-colors"
           >
@@ -89,7 +84,6 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
         )}
       </div>
 
-      {/* Grid MultiSelect */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div>
           <label className="block text-xs font-semibold text-slate-400 mb-1">Origem / Simulado</label>
@@ -137,7 +131,6 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
         </div>
       </div>
 
-      {/* Rodapé do Filtro */}
       <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-h-[42px]">
         <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-600 select-none hover:text-slate-800">
           <input

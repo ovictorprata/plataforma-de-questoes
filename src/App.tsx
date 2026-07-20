@@ -2,11 +2,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Header } from './components/Header';
 import { FilterBankSection } from './components/FilterBankSection';
 import { ExamSetup } from './components/ExamSetup';
-import type { Question } from './components/ExamSetup';
 import { QuestionCard } from './components/QuestionCard';
 import { Pagination } from './components/Pagination';
 import { AnalyticsDashboard } from './components/AnalyticsDashboard';
+import { Footer } from './components/Footer';
 import { useLocalAnalytics } from './hooks/useLocalAnalytics';
+import type { Question } from './types/question';
 
 export interface QuestionWithSource extends Question {
   origemJson: string;
@@ -37,7 +38,6 @@ export const App: React.FC = () => {
   const [appliedAnoFilter, setAppliedAnoFilter] = useState<number[]>([]);
   const [appliedExcludeResolved, setAppliedExcludeResolved] = useState<boolean>(false);
   
-  // NOVO: Guarda a lista de resolvidas CONGELADA no momento do clique em "Aplicar Filtros"
   const [snapshotAnsweredQuestions, setSnapshotAnsweredQuestions] = useState<string[]>([]);
 
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -73,7 +73,22 @@ export const App: React.FC = () => {
     carregarTodasAsQuestoes();
   }, []);
 
-  // O filtro usa snapshotAnsweredQuestions em vez de analytics.answeredQuestions
+  // Extrai todas as disciplinas e matérias para o seletor de filtros
+  const blocosDisponiveis = useMemo(() => {
+    return Array.from(
+      new Set(
+        masterQuestions.flatMap((q) => [
+          q.taxonomia?.disciplina,
+          q.taxonomia?.bloco,
+        ]).filter(Boolean) as string[]
+      )
+    );
+  }, [masterQuestions]);
+
+  const anosDisponiveis = useMemo(() => {
+    return Array.from(new Set(masterQuestions.map((q) => q.ano))).sort((a, b) => b - a);
+  }, [masterQuestions]);
+
   const displayQuestions = useMemo(() => {
     if (activeTab === 'simulado') {
       return simuladoQuestions;
@@ -86,7 +101,10 @@ export const App: React.FC = () => {
         filtradas = filtradas.filter((q) => appliedJsonFilter.includes(q.origemJson));
       }
       if (appliedBlocoFilter.length > 0) {
-        filtradas = filtradas.filter((q) => appliedBlocoFilter.includes(q.bloco));
+        filtradas = filtradas.filter((q) =>
+          appliedBlocoFilter.includes(q.taxonomia?.disciplina || '') ||
+          appliedBlocoFilter.includes(q.taxonomia?.bloco || '')
+        );
       }
       if (appliedAnoFilter.length > 0) {
         filtradas = filtradas.filter((q) => appliedAnoFilter.includes(q.ano));
@@ -110,19 +128,15 @@ export const App: React.FC = () => {
     appliedBlocoFilter,
     appliedAnoFilter,
     appliedExcludeResolved,
-    snapshotAnsweredQuestions, // <-- Só recalcula quando a snapshot muda!
+    snapshotAnsweredQuestions,
   ]);
 
-  const blocosDisponiveis = Array.from(new Set(masterQuestions.map((q) => q.bloco)));
-  const anosDisponiveis = Array.from(new Set(masterQuestions.map((q) => q.ano))).sort((a, b) => b - a);
-
-  // Aqui nós salvamos a foto das questões resolvidas do exato momento do clique
   const handleApplyFilters = () => {
     setAppliedJsonFilter(tempJsonFilter);
     setAppliedBlocoFilter(tempBlocoFilter);
     setAppliedAnoFilter(tempAnoFilter);
     setAppliedExcludeResolved(tempExcludeResolved);
-    setSnapshotAnsweredQuestions(analytics.answeredQuestions); // <-- Tira o "snapshot" das resolvidas
+    setSnapshotAnsweredQuestions(analytics.answeredQuestions);
     setCurrentPage(1);
   };
 
@@ -144,7 +158,7 @@ export const App: React.FC = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans antialiased overflow-x-hidden">
       <Header activeTab={activeTab} onNavigate={handleNavigate} />
 
-      <main className="flex-1 max-w-3xl w-full mx-auto px-3 md:px-4 py-6 pb-24">
+      <main className="flex-1 max-w-3xl w-full mx-auto px-3 md:px-4 py-6 pb-12">
         {activeTab === 'banco' && (
           <div className="space-y-4">
             <FilterBankSection
@@ -159,13 +173,10 @@ export const App: React.FC = () => {
               setTempAnoFilter={setTempAnoFilter}
               tempExcludeResolved={tempExcludeResolved}
               setTempExcludeResolved={setTempExcludeResolved}
-              
-              /* Novas props para comparação de estado pendente */
               appliedJsonFilter={appliedJsonFilter}
               appliedBlocoFilter={appliedBlocoFilter}
               appliedAnoFilter={appliedAnoFilter}
               appliedExcludeResolved={appliedExcludeResolved}
-
               onApplyFilters={handleApplyFilters}
             />
 
@@ -176,7 +187,9 @@ export const App: React.FC = () => {
                   <QuestionCard
                     key={idComposto}
                     question={question}
-                    onAnswerLogged={(isCorrect) => logAnswer(idComposto, question.bloco, isCorrect)}
+                    onAnswerLogged={(isCorrect) =>
+                      logAnswer(idComposto, question.taxonomia?.disciplina || 'Geral', isCorrect)
+                    }
                   />
                 );
               })}
@@ -203,7 +216,9 @@ export const App: React.FC = () => {
                   <QuestionCard
                     key={idComposto}
                     question={question}
-                    onAnswerLogged={(isCorrect) => logAnswer(idComposto, question.bloco, isCorrect)}
+                    onAnswerLogged={(isCorrect) =>
+                      logAnswer(idComposto, question.taxonomia?.disciplina || 'Geral', isCorrect)
+                    }
                   />
                 );
               })}
@@ -214,20 +229,24 @@ export const App: React.FC = () => {
         {activeTab === 'analytics' && (
           <AnalyticsDashboard analytics={analytics} />
         )}
+
+        {/* Paginação */}
+        {activeTab !== 'analytics' && displayQuestions.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalQuestions={displayQuestions.length}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1); 
+            }}
+          />
+        )}
       </main>
 
-      {activeTab !== 'analytics' && displayQuestions.length > 0 && (
-        <Pagination
-          currentPage={currentPage}
-          totalQuestions={displayQuestions.length}
-          pageSize={pageSize}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={(size) => {
-            setPageSize(size);
-            setCurrentPage(1); 
-          }}
-        />
-      )}
+      {/* Rodapé com Créditos */}
+      <Footer />
     </div>
   );
 };
