@@ -108,17 +108,21 @@ export const MaterialViewer: React.FC<MaterialViewerProps> = ({
 
   const markdownComponents: Components = useMemo(() => ({
     h1: ({ children }: CustomComponentProps) => (
-      <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight border-b border-slate-200 pb-3 mb-6">
+      <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight border-b border-slate-200 pb-3 mt-12 mb-8">
         {children}
       </h1>
     ),
+
+    // 🎯 H2: Títulos de Seção (Aumentado de mt-12 para mt-16 = 64px)
     h2: ({ children }: CustomComponentProps) => (
-      <h2 className="text-xl font-bold text-slate-800 mt-8 mb-4">
+      <h2 className="text-xl font-bold text-slate-800 mt-16 mb-6 pt-2">
         {children}
       </h2>
     ),
+
+    // 🎯 H3: Subtítulos (Aumentado de mt-8 para mt-12 = 48px)
     h3: ({ children }: CustomComponentProps) => (
-      <h3 className="text-base font-bold text-indigo-600 uppercase tracking-wider mt-6 mb-3">
+      <h3 className="text-base font-bold text-indigo-600 uppercase tracking-wider mt-12 mb-4">
         {children}
       </h3>
     ),
