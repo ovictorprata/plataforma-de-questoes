@@ -320,9 +320,13 @@ export const App: React.FC = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans antialiased overflow-x-hidden">
       <Header activeTab={activeTab} onNavigate={handleNavigate} />
 
-      <main className={`flex-1 w-full mx-auto px-3 md:px-4 py-6 pb-12 ${
-        activeTab === 'materiais' ? 'max-w-7xl' : 'max-w-3xl'
-      }`}>
+      <main
+        className={`flex-1 w-full pb-12 ${
+          activeTab === 'materiais'
+            ? 'px-0 max-w-full'
+            : 'max-w-3xl mx-auto px-3 md:px-4 py-6'
+        }`}
+      >
         {/* ABA BANCO DE QUESTÕES */}
         {activeTab === 'banco' && (
           <div className="space-y-4">

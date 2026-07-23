@@ -1,0 +1,139 @@
+## **Direitos Sociais dos Trabalhadores (Art. 7º da CF)**
+
+# **1\. Rol do Artigo 7º**
+
+A Constituição diz que os trabalhadores têm os direitos do artigo 7º *"além de outros que visem à melhoria de sua condição social"*.
+
+* **Natureza do rol:** É um rol **exemplificativo (aberto)**, não taxativo. Leis trabalhistas ou outras normas podem criar novos direitos.
+
+👣 PEGADINHA: A VUNESP costuma afirmar que o rol dos direitos sociais do artigo 7º é *taxativo* ou *fechado*, ou que novos direitos só poderiam ser criados por Emenda Constitucional. Errado\! A própria Constituição autoriza novos direitos por lei infraconstitucional.
+
+---
+
+# **2\. Proteção contra Demissão sem Justa Causa**
+
+A garantia de proteção do emprego contra a despedida arbitrária ou sem justa causa exige regulamentação por **Lei Complementar (LC)**.
+
+**🚨ALTA INCIDÊNCIA:** Este é o **primeiro dispositivo da CF/88 que exige Lei Complementar**.
+
+**⚠️ATENÇÃO:** Lembre-se de que a Constituição exige **Lei Complementar** para tratar deste tema, e não lei ordinária\!
+
+👣 PEGADINHA: A VUNESP adora cobrar a possibilidade de **Medida Provisória (MP)** sobre o tema. Fique atento: como a matéria exige **Lei Complementar**, é **proibida** a edição de Medida Provisória sobre ela.
+
+# **3\. Seguro-Desemprego e FGTS**
+
+* **Seguro-Desemprego:** Devido estritamente no caso de **desemprego involuntário**.  
+* **FGTS:** É um direito garantido aos trabalhadores urbanos e rurais.
+
+👣 PEGADINHA: A banca pode tentar estender o FGTS aos servidores públicos estatutários de forma obrigatória pela CF. O servidor público sujeito ao regime estatutário **não possui FGTS** constitucionalmente garantido (sua garantia contra a perda do cargo é a estabilidade).
+
+# **4\. Salário Mínimo e Piso Salarial**
+
+* **Salário Mínimo:** Único em todo o país (**nacionalmente unificado**), fixado em lei.  
+* **Vedação de Vinculação:** É proibido usar o salário mínimo como indexador ou base de cálculo para qualquer fim (Súmula Vinculante 4).  
+* **Base para o Mínimo:** A garantia do salário mínimo diz respeito ao **total da remuneração** do mês (vencimento básico \+ vantagens/gratificações), e não ao vencimento básico isolado.  
+* **Piso Salarial:** Pode variar por Estado ou categoria profissional (a União pode autorizar os Estados a fixarem pisos regionais por Lei Complementar).  
+* É **CONSTITUCIONAL** a remuneração inferior ao salário mínimo para recrutas no serviço militar obrigatório. 
+
+**⚠️ATENÇÃO:** O salário mínimo é **nacionalmente unificado**, mas o **piso salarial** pode ser **regionalizado**. Não confunda os dois conceitos\!
+
+# **Irredutibilidade Salarial e 13º Salário**
+
+* **Regra:** O salário é irredutível.  
+* **Exceção:** A redução é permitida **apenas** quando prevista em **acordo coletivo ou convenção coletiva de trabalho**.  
+* **13º Salário:** Tem por base de cálculo a **remuneração integral** do trabalhador ou o valor da aposentadoria.
+
+👣 PEGADINHA: A VUNESP costuma trocar "acordo ou convenção coletiva" por "acordo individual entre patrão e empregado". O acordo direto com o empregador **não autoriza** a redução salarial.
+
+**⚠️ATENÇÃO:** Quanto ao 13º salário, a banca costuma trocar "remuneração integral" por "salário-base" ou colocar ressalvas inventadas para quem recebe remuneração variável. O direito vale com base na remuneração integral para todos.
+
+### **📌 Visão Geral**
+
+Estuda as garantias constitucionais do trabalho (prazos para processar a empresa, proibições de discriminação, idades mínimas e extensão a servidores/domésticos).
+
+* **Foco VUNESP:** **ALTÍSSIMO**. Cobrança literal das regras e pegadinhas com prazos e idades.
+
+### 
+
+# **Prazos Trabalhistas (Art. 7º, XXIX)**
+
+Para cobrar direitos na Justiça, o trabalhador lida com **2 prazos ao mesmo tempo**:
+
+* **2 anos (Biênio):** É o prazo máximo após a demissão para **dar entrada na ação**. Passou disso? Perdeu o direito de processar.  
+* **5 anos (Quinquenal):** É o limite do passado que ele pode cobrar. Entrou com a ação? Só recupera os **últimos 5 anos** contados a partir do dia em que protocolou o processo.
+
+<img src="materiais/constitucional/mao_com_pato.png" alt="Mão (5 anos) com pato (2 anos)" style="width: 30%;" />
+
+👣 PEGADINHA: A banca ama inverter os números\! Lembre-se: **2 anos para ENTRAR** com a ação | **5 anos de VALORES** retroativos para receber. Urbanos e rurais têm **regras idênticas**.
+
+# **2\. Proibição de Discriminação (Art. 7º, XXX a XXXII)¹**
+
+É proibido qualquer tipo de diferenciação em salários, funções ou contratação motivada por:
+
+* **Sexo, Idade, Cor ou Estado Civil**  
+* **Deficiência (PCD):** A Constituição usa o termo "portador de deficiência", mas a nomenclatura atual e correta em direitos humanos é "pessoa com deficiência \- PCD"  
+* **Tipo de trabalho** (manual, técnico ou intelectual)
+
+💡 **SÚMULAS PARA CONCURSOS (STF):**
+
+* **Psicotécnico:** Só pode ser exigido em concurso público se estiver **previsto em LEI** (Súmula Vinculante 44). Não basta estar no edital\!  
+* **Limite de Idade:** Só é válido em concurso se a **natureza do cargo** exigir (ex: Polícia Civil/Militar) (Súmula 683).
+
+# **3\. Regras de Idade para o Trabalho (Art. 7º, XXXIII)**
+
+As idades funcionam em **3 degraus de proteção**:
+
+| Faixa Etária | Regra de Proteção |
+| :---: | :--- |
+| **16 e 17 anos** | 🚫 **PROIBIDO:** Noturno, Perigoso ou Insalubre |
+| **14 e 15 anos** | EXCLUSIVAMENTE como **APRENDIZ** |
+| **Menos de 14 anos** | **PROIBIÇÃO TOTAL** |
+
+👣 PEGADINHA: A banca tenta enganar o candidato dizendo que o aprendiz pode trabalhar a partir dos 12 anos, ou que o menor de 16 anos pode exercer trabalho insalubre se for aprendiz. Fique atento: O aprendiz de 14 ou 15 anos pode trabalhar, mas NUNCA em atividades noturnas, perigosas ou insalubres\! 
+
+---
+
+# **4\. Trabalhador Avulso vs. Permanente (Art. 7º, XXXIV)**
+
+* **Trabalhador Avulso:** Presta serviços sem vínculo empregatício direto (ex: portuários).  
+* **Regra:** Possui **IGUALDADE de direitos** em relação ao trabalhador fixo/permanente.
+
+# 
+
+# **5\. Domésticos vs. Servidores Públicos**
+
+Nem todo direito da CLT vale para todo mundo:
+
+* **Empregados Domésticos:** Têm direitos de aplicação direta (salário mínimo, 13º, férias) e direitos regulamentados por lei (FGTS, seguro-desemprego).  
+* **Servidores Públicos Efetivos:** **NÃO têm** direito a **FGTS**, **Seguro-Desemprego**, **Aviso Prévio** e **Piso Salarial**.
+
+# 
+
+# ---
+
+# **RESUMO**
+
+* **Rol do Art. 7º:** Exemplificativo ("além de outros") ➔ Sempre para *melhorar* a condição do trabalhador.  
+* **1º caso de Lei Complementar na CF:** Proteção contra despedida arbitrária / sem justa causa (Art. 7º, I).  
+* **Medida Provisória:** VEDADA para tratar sobre proteção contra demissão sem justa causa.  
+* **Seguro-Desemprego:** Exclusivo para desemprego *involuntário*.  
+* **Salário Mínimo:** Vedada vinculação para qualquer fim (SV 4). Analisa a *remuneração total* do servidor (SV 16). Recrutas das Forças Armadas podem receber menos (SV 6).  
+* **Irredutibilidade Salarial:** Regra com EXCEÇÃO. Pode ser reduzido mediante **Convenção ou Acordo Coletivo**.  
+* **13º Salário:** Calculado sobre a **remuneração integral** ou valor da aposentadoria.  
+* **Prazos:** 2 anos pós-demissão (para entrar) \+ 5 anos retroativos (para receber).  
+* **Trabalho Noturno/Insalubre/Perigoso:** Apenas para maiores de **18 anos**.  
+* **Aprendiz:** Permite trabalho a partir dos **14 anos** (nunca noturno/insalubre).  
+* **Concursos:** Psicotécnico precisa de **LEI**; Limite de idade depende das **atribuições**.  
+* **Servidor Público:** Não tem direito a FGTS nem Seguro-Desemprego na Constituição
+
+# **Prazos e Idades na CF/88**
+
+| Regra | O que significa? |
+| :---- | :---- |
+| **Prazo de 2 anos** | Limite pós-demissão para ajuizar a ação trabalhista. |
+| **Prazo de 5 anos** | Período máximo do passado que pode ser cobrado. |
+| **A partir de 14 anos** | Permite o trabalho **apenas** na condição de Aprendiz. |
+| **A partir de 16 anos** | Permite o trabalho regular (sem insalubridade/perigo/noite). |
+| **A partir de 18 anos** | Libera trabalhos Noturnos, Perigosos ou Insalubres. |
+
+[image1]: <data:image/png;base64,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>

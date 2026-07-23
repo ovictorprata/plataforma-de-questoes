@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
+import remarkGfm from 'remark-gfm';
 import { QuestionCard } from './QuestionCard';
 import type { Question } from '../types/question';
 
@@ -50,7 +51,7 @@ export const MaterialViewer: React.FC<MaterialViewerProps> = ({
   content,
   masterQuestions,
 }) => {
-  // 🎯 Pré-processador do Markdown com suporte a <questao id="X" ate="Y" />
+  // 🎯 Pré-processador do Markdown com suporte a <questao id="X" ate="Y" /> e Alertas
   const processedContent = useMemo(() => {
     let text = content;
 
@@ -58,7 +59,6 @@ export const MaterialViewer: React.FC<MaterialViewerProps> = ({
     text = text.replace(
       /<questao\s+id=["']([^"']+)["']\s+ate=["']([^"']+)["']\s*\/?>/gi,
       (_, startId, endId) => {
-        // Extrai prefixo e número inicial (ex: "S-2026-1" -> prefix "S-2026-", num 1)
         const matchStart = startId.match(/^(.*?)(\d+)$/);
         const matchEnd = endId.match(/^(.*?)(\d+)$/);
 
@@ -74,7 +74,6 @@ export const MaterialViewer: React.FC<MaterialViewerProps> = ({
           return `<div data-questao-id="${startId}"></div>`;
         }
 
-        // Gera as divs sequenciais
         const generatedDivs: string[] = [];
         for (let i = startNum; i <= endNum; i++) {
           generatedDivs.push(`<div data-questao-id="${prefix}${i}"></div>`);
@@ -142,16 +141,32 @@ export const MaterialViewer: React.FC<MaterialViewerProps> = ({
       </ol>
     ),
     hr: () => <hr className="my-8 border-slate-200/80" />,
-    img: ({ src, alt }: CustomImgProps) => (
-      <div className="my-6 flex flex-col items-center">
-        <img
-          src={src}
-          alt={alt}
-          className="max-w-full h-auto rounded-xl border border-slate-200 shadow-xs"
-        />
-        {alt && <span className="text-xs text-slate-400 mt-2 font-['Inter',sans-serif]">{alt}</span>}
-      </div>
-    ),
+    img: ({ src, alt, style, width, ...props }: CustomImgProps & React.ImgHTMLAttributes<HTMLImageElement>) => {
+      const [cleanSrc, widthQuery] = (src || '').split('#w=');
+      
+      const finalStyle: React.CSSProperties = {
+        ...(style || {}),
+        width: widthQuery || style?.width || (width ? `${width}px` : undefined) || 'auto',
+        maxWidth: '100%',
+      };
+
+      return (
+        <figure className="my-6 flex flex-col items-center justify-center">
+          <img
+            src={cleanSrc}
+            alt={alt || ''}
+            style={finalStyle}
+            className="h-auto rounded-xl border border-slate-200/80 shadow-2xs"
+            {...props}
+          />
+          {alt && (
+            <figcaption className="mt-2.5 text-center text-xs italic text-slate-500 font-['Inter',sans-serif]">
+              {alt}
+            </figcaption>
+          )}
+        </figure>
+      );
+    },
     div: ({ 'data-questao-id': questaoId, ...props }: DivComponentProps) => {
       if (questaoId) {
         return (
@@ -165,11 +180,46 @@ export const MaterialViewer: React.FC<MaterialViewerProps> = ({
 
       return <div {...props} />;
     },
+
+    // 🎯 ESTILIZAÇÃO PREMIUM DE TABELAS (RESPONSIVA E COM DESIGN SYSTEM)
+    table: ({ children }: CustomComponentProps) => (
+      <div className="my-6 w-full overflow-hidden overflow-x-auto rounded-2xl border border-slate-200/90 shadow-2xs bg-white">
+        <table className="w-full border-collapse text-left text-xs font-['Inter',sans-serif]">
+          {children}
+        </table>
+      </div>
+    ),
+    thead: ({ children }: CustomComponentProps) => (
+      <thead className="bg-slate-100/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+        {children}
+      </thead>
+    ),
+    tbody: ({ children }: CustomComponentProps) => (
+      <tbody className="divide-y divide-slate-100 bg-white text-slate-700">
+        {children}
+      </tbody>
+    ),
+    tr: ({ children }: CustomComponentProps) => (
+      <tr className="hover:bg-slate-50/70 transition-colors">
+        {children}
+      </tr>
+    ),
+    th: ({ children }: CustomComponentProps) => (
+      <th className="px-5 py-3.5 font-extrabold text-slate-800">
+        {children}
+      </th>
+    ),
+    td: ({ children }: CustomComponentProps) => (
+      <td className="px-5 py-3.5 leading-relaxed text-slate-700 align-middle">
+        {children}
+      </td>
+    ),
   }), [masterQuestions]);
 
   return (
     <div className="w-full font-['Inter',sans-serif]">
       <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
         components={markdownComponents}
       >

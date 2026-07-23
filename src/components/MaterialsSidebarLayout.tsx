@@ -493,13 +493,13 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
 
       {/* 🖥️ 4. ÁREA DE LEITURA (ALINHAMENTO IMPECÁVEL NO TOPO) */}
       <div 
-        className="relative w-full md:w-auto shrink-0 px-4 md:px-10 py-6 min-w-0 max-w-full"
+        className="relative w-full md:w-auto shrink-0 px-3 sm:px-6 md:px-10 py-4 md:py-6 min-w-0 max-w-full"
         style={{
-          marginLeft: typeof window !== 'undefined' && window.innerWidth >= 768 ? `${sidebarWidth}px` : '0px',
-          width: typeof window !== 'undefined' && window.innerWidth >= 768 ? `${contentWidth}px` : '100%',
+          marginLeft: typeof window !== 'undefined' && window.innerWidth >= 768 ? `${sidebarWidth}px` : undefined,
+          width: typeof window !== 'undefined' && window.innerWidth >= 768 ? `${contentWidth}px` : undefined,
         }}
       >
-        <main className="max-w-full">
+        <main className="max-w-full w-full overflow-hidden">
           {materialContent ? (
             <MaterialViewer
               content={materialContent}
@@ -512,7 +512,7 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
           )}
         </main>
 
-        {/* ALÇA DE ARRASTE DO CONTEÚDO */}
+        {/* ALÇA DE ARRASTE DO CONTEÚDO (APENAS DESKTOP) */}
         <div
           onPointerDown={handleContentPointerDown}
           onPointerMove={handleContentPointerMove}
@@ -529,6 +529,7 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
           </div>
         </div>
       </div>
-    </div>
+        </div>
+    
   );
 };
