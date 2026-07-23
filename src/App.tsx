@@ -11,7 +11,7 @@ import { SimuladoResultSummary } from './components/SimuladoResultSummary';
 import { useLocalAnalytics } from './hooks/useLocalAnalytics';
 import { CheckCircle2, RefreshCw } from 'lucide-react';
 import type { Question } from './types/question';
-
+import { MaterialsSidebarLayout } from './components/MaterialsSidebarLayout';
 export interface QuestionWithSource extends Question {
   origemJson: string;
 }
@@ -30,10 +30,28 @@ interface SavedFilters {
   excludeResolved: boolean;
 }
 
+const getSavedFilters = (): SavedFilters => {
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_FILTERS_KEY);
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (error) {
+    console.error("Erro ao carregar filtros salvos do localStorage:", error);
+  }
+  return {
+    jsonFilter: [],
+    disciplinaFilter: [],
+    blocoFilter: [],
+    anoFilter: [],
+    excludeResolved: false,
+  };
+};
+
 export const App: React.FC = () => {
   const { analytics, logAnswer } = useLocalAnalytics();
   
-  const [activeTab, setActiveTab] = useState<'banco' | 'simulado' | 'analytics'>('banco');
+  const [activeTab, setActiveTab] = useState<'banco' | 'simulado' | 'analytics' | 'materiais'>('banco');
   
   const [masterQuestions, setMasterQuestions] = useState<QuestionWithSource[]>([]);
   const [simuladoQuestions, setSimuladoQuestions] = useState<Question[]>([]);
@@ -44,26 +62,6 @@ export const App: React.FC = () => {
   const [simuladoStartTime, setSimuladoStartTime] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
 
-  // 1. Função para carregar os filtros salvos do localStorage
-  const getSavedFilters = (): SavedFilters => {
-    try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_FILTERS_KEY);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar filtros salvos do localStorage:", error);
-    }
-    return {
-      jsonFilter: [],
-      disciplinaFilter: [],
-      blocoFilter: [],
-      anoFilter: [],
-      excludeResolved: false,
-    };
-  };
-
-  // 2. Estados dos Filtros (Inicializados com o que estiver salvo no localStorage)
   const [tempJsonFilter, setTempJsonFilter] = useState<string[]>(() => getSavedFilters().jsonFilter);
   const [tempDisciplinaFilter, setTempDisciplinaFilter] = useState<string[]>(() => getSavedFilters().disciplinaFilter);
   const [tempBlocoFilter, setTempBlocoFilter] = useState<string[]>(() => getSavedFilters().blocoFilter);
@@ -76,7 +74,6 @@ export const App: React.FC = () => {
   const [appliedAnoFilter, setAppliedAnoFilter] = useState<number[]>(() => getSavedFilters().anoFilter);
   const [appliedExcludeResolved, setAppliedExcludeResolved] = useState<boolean>(() => getSavedFilters().excludeResolved);
   
-  // 🎯 Snapshot inicializado apenas uma vez no carregamento para que a questão não suma na hora de responder
   const [snapshotAnsweredQuestions, setSnapshotAnsweredQuestions] = useState<string[]>(() => {
     return analytics.answeredQuestions || [];
   });
@@ -84,7 +81,6 @@ export const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
 
-  // Carrega as questões dinamicamente
   useEffect(() => {
     async function carregarTodasAsQuestoes() {
       try {
@@ -115,7 +111,6 @@ export const App: React.FC = () => {
     carregarTodasAsQuestoes();
   }, []);
 
-  // Questões filtradas apenas pelos JSONs temporariamente selecionados
   const masterQuestionsFilteredByJson = useMemo(() => {
     if (tempJsonFilter.length === 0) {
       return masterQuestions;
@@ -123,7 +118,6 @@ export const App: React.FC = () => {
     return masterQuestions.filter((q) => tempJsonFilter.includes(q.origemJson));
   }, [masterQuestions, tempJsonFilter]);
 
-  // Extrai disciplinas apenas dos JSONs selecionados
   const disciplinasDisponiveis = useMemo(() => {
     return Array.from(
       new Set(
@@ -132,7 +126,6 @@ export const App: React.FC = () => {
     );
   }, [masterQuestionsFilteredByJson]);
 
-  // Mapeia disciplinas e blocos apenas dos JSONs selecionados
   const questoesMapeamento = useMemo(() => {
     return masterQuestionsFilteredByJson.map((q) => ({
       disciplina: q.taxonomia?.disciplina || 'Geral',
@@ -140,14 +133,12 @@ export const App: React.FC = () => {
     }));
   }, [masterQuestionsFilteredByJson]);
 
-  // Extrai anos apenas dos JSONs selecionados
   const anosDisponiveis = useMemo(() => {
     return Array.from(
       new Set(masterQuestionsFilteredByJson.map((q) => q.ano))
     ).sort((a, b) => b - a);
   }, [masterQuestionsFilteredByJson]);
 
-  // Manipulação de alteração do filtro de JSON com validação direta
   const handleToggleJsonFilter = (item: string) => {
     const nextJsonFilter = tempJsonFilter.includes(item)
       ? tempJsonFilter.filter((i) => i !== item)
@@ -198,7 +189,6 @@ export const App: React.FC = () => {
       }
       if (appliedExcludeResolved) {
         filtradas = filtradas.filter((q) => {
-          // Usa o snapshot gravado no momento de aplicar o filtro
           return !snapshotAnsweredQuestions.includes(q.id);
         });
       }
@@ -219,7 +209,6 @@ export const App: React.FC = () => {
     snapshotAnsweredQuestions,
   ]);
 
-  // Aplicar Filtros, atualizar Snapshot e salvar no localStorage
   const handleApplyFilters = () => {
     setAppliedJsonFilter(tempJsonFilter);
     setAppliedDisciplinaFilter(tempDisciplinaFilter);
@@ -227,9 +216,7 @@ export const App: React.FC = () => {
     setAppliedAnoFilter(tempAnoFilter);
     setAppliedExcludeResolved(tempExcludeResolved);
     
-    // 🎯 Atualiza a foto (snapshot) das questões resolvidas apenas ao clicar neste botão
     setSnapshotAnsweredQuestions(analytics.answeredQuestions);
-    
     setCurrentPage(1);
 
     const filtersToSave: SavedFilters = {
@@ -243,7 +230,6 @@ export const App: React.FC = () => {
     localStorage.setItem(LOCAL_STORAGE_FILTERS_KEY, JSON.stringify(filtersToSave));
   };
 
-  // Limpar Filtros e apagar do localStorage
   const handleClearAllFilters = () => {
     setTempJsonFilter([]);
     setTempDisciplinaFilter([]);
@@ -316,7 +302,7 @@ export const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleNavigate = (aba: 'banco' | 'simulado' | 'analytics') => {
+  const handleNavigate = (aba: 'banco' | 'simulado' | 'analytics' | 'materiais') => {
     setActiveTab(aba);
     setCurrentPage(1);
   };
@@ -334,7 +320,9 @@ export const App: React.FC = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans antialiased overflow-x-hidden">
       <Header activeTab={activeTab} onNavigate={handleNavigate} />
 
-      <main className="flex-1 max-w-3xl w-full mx-auto px-3 md:px-4 py-6 pb-12">
+      <main className={`flex-1 w-full mx-auto px-3 md:px-4 py-6 pb-12 ${
+        activeTab === 'materiais' ? 'max-w-7xl' : 'max-w-3xl'
+      }`}>
         {/* ABA BANCO DE QUESTÕES */}
         {activeTab === 'banco' && (
           <div className="space-y-4">
@@ -370,7 +358,6 @@ export const App: React.FC = () => {
               }}
             />
 
-            {/* Lista de Questões Paginadas */}
             <div className="space-y-4">
               {currentQuestionsBatchSlice.map((question) => {
                 return (
@@ -401,7 +388,6 @@ export const App: React.FC = () => {
               )}
             </div>
 
-            {/* Navegação da Paginação */}
             {displayQuestions.length > 0 && (
               <Pagination
                 currentPage={currentPage}
@@ -453,7 +439,6 @@ export const App: React.FC = () => {
                 />
               )}
 
-              {/* Lista Completa do Simulado */}
               <div className="space-y-4">
                 {displayQuestions.map((question) => {
                   return (
@@ -469,7 +454,6 @@ export const App: React.FC = () => {
                 })}
               </div>
 
-              {/* Card de Finalização do Simulado */}
               {!isSimuladoSubmitted && (
                 <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 mt-6">
                   <span className="text-xs text-slate-500 font-medium">
@@ -493,6 +477,13 @@ export const App: React.FC = () => {
         {/* ABA ANALYTICS */}
         {activeTab === 'analytics' && (
           <AnalyticsDashboard analytics={analytics} />
+        )}
+
+        {/* 📚 ABA MATERIAIS */}
+        {activeTab === 'materiais' && (
+          <MaterialsSidebarLayout
+            masterQuestions={masterQuestions}
+          />
         )}
       </main>
 

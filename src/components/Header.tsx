@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { BookOpen, HelpCircle, Layers, BarChart3, Menu, X } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: 'banco' | 'simulado' | 'analytics';
-  onNavigate: (aba: 'banco' | 'simulado' | 'analytics') => void;
+  activeTab: 'banco' | 'simulado' | 'analytics' | 'materiais';
+  onNavigate: (aba: 'banco' | 'simulado' | 'analytics' | 'materiais') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ activeTab, onNavigate }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleSelectTab = (aba: 'banco' | 'simulado' | 'analytics') => {
+  const handleSelectTab = (aba: 'banco' | 'simulado' | 'analytics' | 'materiais') => {
     onNavigate(aba);
     setIsMenuOpen(false);
   };
@@ -62,6 +62,16 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onNavigate }) => {
             >
               <BarChart3 className="w-4 h-4" /> Meu Desempenho
             </button>
+            <button
+              onClick={() => handleSelectTab('materiais')}
+              className={`h-full flex items-center gap-1.5 border-b-2 transition-all px-1 ${
+                activeTab === 'materiais' 
+                  ? 'border-indigo-600 text-indigo-600 font-bold' 
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" /> Materiais
+            </button>
           </nav>
         </div>
       </div>
@@ -91,6 +101,14 @@ export const Header: React.FC<HeaderProps> = ({ activeTab, onNavigate }) => {
             }`}
           >
             <BarChart3 className="w-4 h-4" /> Meu Desempenho
+          </button>
+          <button
+            onClick={() => handleSelectTab('materiais')}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === 'materiais' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" /> Materiais
           </button>
         </div>
       )}
