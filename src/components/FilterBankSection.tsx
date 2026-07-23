@@ -13,6 +13,9 @@ export interface FilterBankSectionProps {
 
   tempJsonFilter: string[];
   setTempJsonFilter: React.Dispatch<React.SetStateAction<string[]>>;
+  onToggleJsonFilter?: (item: string) => void;
+  onClearJsonFilter?: () => void;
+
   tempDisciplinaFilter: string[];
   setTempDisciplinaFilter: React.Dispatch<React.SetStateAction<string[]>>;
   tempBlocoFilter: string[];
@@ -29,8 +32,8 @@ export interface FilterBankSectionProps {
   appliedExcludeResolved: boolean;
 
   onApplyFilters: () => void;
+  onClearAllFilters?: () => void; // 👈 Adicionada a propriedade opcional na interface
 
-  // Props de UX (Opção 1)
   totalQuestions: number;
   pageSize: number;
   onPageSizeChange: (size: number) => void;
@@ -43,6 +46,8 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
   anosDisponiveis,
   tempJsonFilter,
   setTempJsonFilter,
+  onToggleJsonFilter,
+  onClearJsonFilter,
   tempDisciplinaFilter,
   setTempDisciplinaFilter,
   tempBlocoFilter,
@@ -57,6 +62,7 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
   appliedAnoFilter,
   appliedExcludeResolved,
   onApplyFilters,
+  onClearAllFilters, // 👈 Desestruturada nas props do componente
   totalQuestions,
   pageSize,
   onPageSizeChange,
@@ -120,7 +126,7 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
 
   return (
     <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-      {/* 1. CABEÇALHO DO CARD (Título + Badge de Total de Questões Encontradas) */}
+      {/* 1. CABEÇALHO DO CARD */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div className="flex items-center gap-2.5">
           <Filter className="w-4 h-4 text-indigo-600" />
@@ -134,11 +140,16 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
           <button
             type="button"
             onClick={() => {
-              setTempJsonFilter([]);
-              setTempDisciplinaFilter([]);
-              setTempBlocoFilter([]);
-              setTempAnoFilter([]);
-              setTempExcludeResolved(false);
+              if (onClearAllFilters) {
+                onClearAllFilters();
+              } else {
+                if (onClearJsonFilter) onClearJsonFilter();
+                setTempJsonFilter([]);
+                setTempDisciplinaFilter([]);
+                setTempBlocoFilter([]);
+                setTempAnoFilter([]);
+                setTempExcludeResolved(false);
+              }
             }}
             className="text-xs text-rose-600 hover:text-rose-800 font-medium transition-colors"
           >
@@ -158,11 +169,23 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
             options={jsonFilesList}
             selectedOptions={tempJsonFilter}
             onToggle={(item) => {
-              setTempJsonFilter((prev) =>
-                prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
-              );
+              if (onToggleJsonFilter) {
+                onToggleJsonFilter(String(item));
+              } else {
+                setTempJsonFilter((prev) =>
+                  prev.includes(String(item))
+                    ? prev.filter((i) => i !== String(item))
+                    : [...prev, String(item)]
+                );
+              }
             }}
-            onClear={() => setTempJsonFilter([])}
+            onClear={() => {
+              if (onClearJsonFilter) {
+                onClearJsonFilter();
+              } else {
+                setTempJsonFilter([]);
+              }
+            }}
           />
         </div>
 
@@ -176,9 +199,9 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
             selectedOptions={tempDisciplinaFilter}
             onToggle={(item) => {
               setTempDisciplinaFilter((prev) => {
-                const updated = prev.includes(item)
-                  ? prev.filter((i) => i !== item)
-                  : [...prev, item];
+                const updated = prev.includes(String(item))
+                  ? prev.filter((i) => i !== String(item))
+                  : [...prev, String(item)];
                 setTempBlocoFilter([]);
                 return updated;
               });
@@ -199,7 +222,7 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
             options={blocosAgrupados}
             selectedOptions={tempBlocoFilter}
             onToggle={(item) => {
-              const itemStr = item as string;
+              const itemStr = String(item);
               setTempBlocoFilter((prev) =>
                 prev.includes(itemStr)
                   ? prev.filter((i) => i !== itemStr)
@@ -207,7 +230,7 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
               );
             }}
             onToggleGroup={(groupItems, shouldSelectAll) => {
-              const itemsStr = groupItems as string[];
+              const itemsStr = groupItems.map(String);
               setTempBlocoFilter((prev) => {
                 if (shouldSelectAll) {
                   return Array.from(new Set([...prev, ...itemsStr]));
@@ -229,8 +252,9 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
             options={anosDisponiveis}
             selectedOptions={tempAnoFilter}
             onToggle={(item) => {
+              const itemNum = Number(item);
               setTempAnoFilter((prev) =>
-                prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
+                prev.includes(itemNum) ? prev.filter((i) => i !== itemNum) : [...prev, itemNum]
               );
             }}
             onClear={() => setTempAnoFilter([])}
@@ -238,7 +262,7 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
         </div>
       </div>
 
-      {/* 3. RODAPÉ DO CARD (Checkbox + Botão Aplicar + Seletor de Questões por página) */}
+      {/* 3. RODAPÉ DO CARD */}
       <div className="pt-3 border-t border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 min-h-[42px]">
         <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-600 select-none hover:text-slate-800">
           <input
@@ -254,7 +278,6 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
         </label>
 
         <div className="flex items-center justify-between md:justify-end gap-4">
-          {/* Seletor Integrado no Rodapé do Filtro */}
           <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
             <span>Questões por página:</span>
             <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg">

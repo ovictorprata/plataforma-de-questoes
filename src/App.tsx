@@ -20,6 +20,16 @@ interface JsonModule {
   default: Question[];
 }
 
+const LOCAL_STORAGE_FILTERS_KEY = 'simulado_app_applied_filters_v1';
+
+interface SavedFilters {
+  jsonFilter: string[];
+  disciplinaFilter: string[];
+  blocoFilter: string[];
+  anoFilter: number[];
+  excludeResolved: boolean;
+}
+
 export const App: React.FC = () => {
   const { analytics, logAnswer } = useLocalAnalytics();
   
@@ -34,23 +44,47 @@ export const App: React.FC = () => {
   const [simuladoStartTime, setSimuladoStartTime] = useState<number | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
 
-  const [tempJsonFilter, setTempJsonFilter] = useState<string[]>([]);
-  const [tempDisciplinaFilter, setTempDisciplinaFilter] = useState<string[]>([]);
-  const [tempBlocoFilter, setTempBlocoFilter] = useState<string[]>([]);
-  const [tempAnoFilter, setTempAnoFilter] = useState<number[]>([]);
-  const [tempExcludeResolved, setTempExcludeResolved] = useState<boolean>(false);
+  // 1. Função para carregar os filtros salvos do localStorage
+  const getSavedFilters = (): SavedFilters => {
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_FILTERS_KEY);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar filtros salvos do localStorage:", error);
+    }
+    return {
+      jsonFilter: [],
+      disciplinaFilter: [],
+      blocoFilter: [],
+      anoFilter: [],
+      excludeResolved: false,
+    };
+  };
 
-  const [appliedJsonFilter, setAppliedJsonFilter] = useState<string[]>([]);
-  const [appliedDisciplinaFilter, setAppliedDisciplinaFilter] = useState<string[]>([]);
-  const [appliedBlocoFilter, setAppliedBlocoFilter] = useState<string[]>([]);
-  const [appliedAnoFilter, setAppliedAnoFilter] = useState<number[]>([]);
-  const [appliedExcludeResolved, setAppliedExcludeResolved] = useState<boolean>(false);
+  // 2. Estados dos Filtros (Inicializados com o que estiver salvo no localStorage)
+  const [tempJsonFilter, setTempJsonFilter] = useState<string[]>(() => getSavedFilters().jsonFilter);
+  const [tempDisciplinaFilter, setTempDisciplinaFilter] = useState<string[]>(() => getSavedFilters().disciplinaFilter);
+  const [tempBlocoFilter, setTempBlocoFilter] = useState<string[]>(() => getSavedFilters().blocoFilter);
+  const [tempAnoFilter, setTempAnoFilter] = useState<number[]>(() => getSavedFilters().anoFilter);
+  const [tempExcludeResolved, setTempExcludeResolved] = useState<boolean>(() => getSavedFilters().excludeResolved);
+
+  const [appliedJsonFilter, setAppliedJsonFilter] = useState<string[]>(() => getSavedFilters().jsonFilter);
+  const [appliedDisciplinaFilter, setAppliedDisciplinaFilter] = useState<string[]>(() => getSavedFilters().disciplinaFilter);
+  const [appliedBlocoFilter, setAppliedBlocoFilter] = useState<string[]>(() => getSavedFilters().blocoFilter);
+  const [appliedAnoFilter, setAppliedAnoFilter] = useState<number[]>(() => getSavedFilters().anoFilter);
+  const [appliedExcludeResolved, setAppliedExcludeResolved] = useState<boolean>(() => getSavedFilters().excludeResolved);
   
-  const [snapshotAnsweredQuestions, setSnapshotAnsweredQuestions] = useState<string[]>([]);
+  // 🎯 Snapshot inicializado apenas uma vez no carregamento para que a questão não suma na hora de responder
+  const [snapshotAnsweredQuestions, setSnapshotAnsweredQuestions] = useState<string[]>(() => {
+    return analytics.answeredQuestions || [];
+  });
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
 
+  // Carrega as questões dinamicamente
   useEffect(() => {
     async function carregarTodasAsQuestoes() {
       try {
@@ -81,24 +115,62 @@ export const App: React.FC = () => {
     carregarTodasAsQuestoes();
   }, []);
 
+  // Questões filtradas apenas pelos JSONs temporariamente selecionados
+  const masterQuestionsFilteredByJson = useMemo(() => {
+    if (tempJsonFilter.length === 0) {
+      return masterQuestions;
+    }
+    return masterQuestions.filter((q) => tempJsonFilter.includes(q.origemJson));
+  }, [masterQuestions, tempJsonFilter]);
+
+  // Extrai disciplinas apenas dos JSONs selecionados
   const disciplinasDisponiveis = useMemo(() => {
     return Array.from(
       new Set(
-        masterQuestions.map((q) => q.taxonomia?.disciplina || 'Geral')
+        masterQuestionsFilteredByJson.map((q) => q.taxonomia?.disciplina || 'Geral')
       )
     );
-  }, [masterQuestions]);
+  }, [masterQuestionsFilteredByJson]);
 
+  // Mapeia disciplinas e blocos apenas dos JSONs selecionados
   const questoesMapeamento = useMemo(() => {
-    return masterQuestions.map((q) => ({
+    return masterQuestionsFilteredByJson.map((q) => ({
       disciplina: q.taxonomia?.disciplina || 'Geral',
       bloco: q.taxonomia?.bloco,
     }));
-  }, [masterQuestions]);
+  }, [masterQuestionsFilteredByJson]);
 
+  // Extrai anos apenas dos JSONs selecionados
   const anosDisponiveis = useMemo(() => {
-    return Array.from(new Set(masterQuestions.map((q) => q.ano))).sort((a, b) => b - a);
-  }, [masterQuestions]);
+    return Array.from(
+      new Set(masterQuestionsFilteredByJson.map((q) => q.ano))
+    ).sort((a, b) => b - a);
+  }, [masterQuestionsFilteredByJson]);
+
+  // Manipulação de alteração do filtro de JSON com validação direta
+  const handleToggleJsonFilter = (item: string) => {
+    const nextJsonFilter = tempJsonFilter.includes(item)
+      ? tempJsonFilter.filter((i) => i !== item)
+      : [...tempJsonFilter, item];
+
+    setTempJsonFilter(nextJsonFilter);
+
+    if (nextJsonFilter.length > 0) {
+      const novasQuestoes = masterQuestions.filter((q) => nextJsonFilter.includes(q.origemJson));
+      
+      const validDisciplinas = new Set(novasQuestoes.map((q) => q.taxonomia?.disciplina || 'Geral'));
+      const validBlocos = new Set(novasQuestoes.map((q) => q.taxonomia?.bloco).filter(Boolean));
+      const validAnos = new Set(novasQuestoes.map((q) => q.ano));
+
+      setTempDisciplinaFilter((prev) => prev.filter((d) => validDisciplinas.has(d)));
+      setTempBlocoFilter((prev) => prev.filter((b) => validBlocos.has(b)));
+      setTempAnoFilter((prev) => prev.filter((a) => validAnos.has(a as number)));
+    }
+  };
+
+  const handleClearJsonFilter = () => {
+    setTempJsonFilter([]);
+  };
 
   const displayQuestions = useMemo(() => {
     if (activeTab === 'simulado') {
@@ -126,8 +198,8 @@ export const App: React.FC = () => {
       }
       if (appliedExcludeResolved) {
         filtradas = filtradas.filter((q) => {
-          const idComposto = `${q.origemJson}-${q.id}`;
-          return !snapshotAnsweredQuestions.includes(idComposto);
+          // Usa o snapshot gravado no momento de aplicar o filtro
+          return !snapshotAnsweredQuestions.includes(q.id);
         });
       }
 
@@ -147,13 +219,47 @@ export const App: React.FC = () => {
     snapshotAnsweredQuestions,
   ]);
 
+  // Aplicar Filtros, atualizar Snapshot e salvar no localStorage
   const handleApplyFilters = () => {
     setAppliedJsonFilter(tempJsonFilter);
     setAppliedDisciplinaFilter(tempDisciplinaFilter);
     setAppliedBlocoFilter(tempBlocoFilter);
     setAppliedAnoFilter(tempAnoFilter);
     setAppliedExcludeResolved(tempExcludeResolved);
+    
+    // 🎯 Atualiza a foto (snapshot) das questões resolvidas apenas ao clicar neste botão
     setSnapshotAnsweredQuestions(analytics.answeredQuestions);
+    
+    setCurrentPage(1);
+
+    const filtersToSave: SavedFilters = {
+      jsonFilter: tempJsonFilter,
+      disciplinaFilter: tempDisciplinaFilter,
+      blocoFilter: tempBlocoFilter,
+      anoFilter: tempAnoFilter,
+      excludeResolved: tempExcludeResolved,
+    };
+
+    localStorage.setItem(LOCAL_STORAGE_FILTERS_KEY, JSON.stringify(filtersToSave));
+  };
+
+  // Limpar Filtros e apagar do localStorage
+  const handleClearAllFilters = () => {
+    setTempJsonFilter([]);
+    setTempDisciplinaFilter([]);
+    setTempBlocoFilter([]);
+    setTempAnoFilter([]);
+    setTempExcludeResolved(false);
+
+    setAppliedJsonFilter([]);
+    setAppliedDisciplinaFilter([]);
+    setAppliedBlocoFilter([]);
+    setAppliedAnoFilter([]);
+    setAppliedExcludeResolved(false);
+
+    setSnapshotAnsweredQuestions([]);
+
+    localStorage.removeItem(LOCAL_STORAGE_FILTERS_KEY);
     setCurrentPage(1);
   };
 
@@ -175,10 +281,10 @@ export const App: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleSelectSimuladoAnswer = (idComposto: string, letra: string) => {
+  const handleSelectSimuladoAnswer = (questionId: string, letra: string) => {
     setSimuladoAnswers((prev) => ({
       ...prev,
-      [idComposto]: letra,
+      [questionId]: letra,
     }));
   };
 
@@ -201,10 +307,9 @@ export const App: React.FC = () => {
     setIsSimuladoSubmitted(true);
 
     simuladoQuestions.forEach((q) => {
-      const idComposto = `${(q as QuestionWithSource).origemJson || 'q'}-${q.id}`;
-      const resposta = simuladoAnswers[idComposto];
+      const resposta = simuladoAnswers[q.id];
       if (resposta) {
-        logAnswer(idComposto, q.taxonomia?.disciplina || 'Geral', resposta === q.gabarito);
+        logAnswer(q.id, q.taxonomia?.disciplina || 'Geral', resposta === q.gabarito);
       }
     });
 
@@ -240,6 +345,8 @@ export const App: React.FC = () => {
               anosDisponiveis={anosDisponiveis}
               tempJsonFilter={tempJsonFilter}
               setTempJsonFilter={setTempJsonFilter}
+              onToggleJsonFilter={handleToggleJsonFilter}
+              onClearJsonFilter={handleClearJsonFilter}
               tempDisciplinaFilter={tempDisciplinaFilter}
               setTempDisciplinaFilter={setTempDisciplinaFilter}
               tempBlocoFilter={tempBlocoFilter}
@@ -254,6 +361,7 @@ export const App: React.FC = () => {
               appliedAnoFilter={appliedAnoFilter}
               appliedExcludeResolved={appliedExcludeResolved}
               onApplyFilters={handleApplyFilters}
+              onClearAllFilters={handleClearAllFilters}
               totalQuestions={displayQuestions.length}
               pageSize={pageSize}
               onPageSizeChange={(size) => {
@@ -265,19 +373,18 @@ export const App: React.FC = () => {
             {/* Lista de Questões Paginadas */}
             <div className="space-y-4">
               {currentQuestionsBatchSlice.map((question) => {
-                const idComposto = `${(question as QuestionWithSource).origemJson || 'q'}-${question.id}`;
                 return (
                   <QuestionCard
-                    key={idComposto}
+                    key={question.id}
                     question={question}
                     onAnswerLogged={(isCorrect, isAnulada, questionId, bloco) => {
-                    logAnswer(
-                      questionId || question.id,
-                      bloco || question.taxonomia?.bloco || 'Geral',
-                      isCorrect,
-                      isAnulada
-                    );
-                  }}
+                      logAnswer(
+                        questionId || question.id,
+                        bloco || question.taxonomia?.bloco || 'Geral',
+                        isCorrect,
+                        isAnulada
+                      );
+                    }}
                   />
                 );
               })}
@@ -294,7 +401,7 @@ export const App: React.FC = () => {
               )}
             </div>
 
-            {/* Navegação da Paginação (Apenas no Banco de Questões) */}
+            {/* Navegação da Paginação */}
             {displayQuestions.length > 0 && (
               <Pagination
                 currentPage={currentPage}
@@ -308,7 +415,7 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* ABA SIMULADO (Exibe todas as questões sem paginação) */}
+        {/* ABA SIMULADO */}
         {activeTab === 'simulado' && (
           displayQuestions.length === 0 ? (
             <ExamSetup 
@@ -346,18 +453,17 @@ export const App: React.FC = () => {
                 />
               )}
 
-              {/* 🎯 Lista Completa do Simulado (Mostra TODAS as questões de uma vez) */}
+              {/* Lista Completa do Simulado */}
               <div className="space-y-4">
                 {displayQuestions.map((question) => {
-                  const idComposto = `${(question as QuestionWithSource).origemJson || 'q'}-${question.id}`;
                   return (
                     <QuestionCard
-                      key={idComposto}
+                      key={question.id}
                       question={question}
                       isSimulado={true}
                       isSubmitted={isSimuladoSubmitted}
-                      selectedAnswer={simuladoAnswers[idComposto] || null}
-                      onSelectAnswer={(letra) => handleSelectSimuladoAnswer(idComposto, letra)}
+                      selectedAnswer={simuladoAnswers[question.id] || null}
+                      onSelectAnswer={(letra) => handleSelectSimuladoAnswer(question.id, letra)}
                     />
                   );
                 })}
