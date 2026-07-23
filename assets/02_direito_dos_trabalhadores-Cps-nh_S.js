@@ -1,4 +1,4 @@
-var e=`## **Direitos Sociais dos Trabalhadores (Art. 7º da CF)**
+var e=`# **Direitos Sociais dos Trabalhadores (Art. 7º da CF)**
 
 # **1\\. Rol do Artigo 7º**
 
