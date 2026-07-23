@@ -492,8 +492,8 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
       </aside>
 
       {/* 🖥️ 4. ÁREA DE LEITURA (ALINHAMENTO IMPECÁVEL NO TOPO) */}
-      <div 
-        className="relative w-full md:w-auto shrink-0 px-3 sm:px-6 md:px-10 py-4 md:py-6 min-w-0 max-w-full"
+     <div 
+        className="relative w-full md:w-auto shrink-0 px-3 sm:px-6 md:pl-40 md:pr-10 py-4 md:py-6 min-w-0 max-w-full"
         style={{
           marginLeft: typeof window !== 'undefined' && window.innerWidth >= 768 ? `${sidebarWidth}px` : undefined,
           width: typeof window !== 'undefined' && window.innerWidth >= 768 ? `${contentWidth}px` : undefined,
