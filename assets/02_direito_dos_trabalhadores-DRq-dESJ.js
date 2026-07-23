@@ -8,7 +8,6 @@ A Constituição diz que os trabalhadores têm os direitos do artigo 7º *"além
 
 👣 PEGADINHA: A VUNESP costuma afirmar que o rol dos direitos sociais do artigo 7º é *taxativo* ou *fechado*, ou que novos direitos só poderiam ser criados por Emenda Constitucional. Errado\\! A própria Constituição autoriza novos direitos por lei infraconstitucional.
 
----
 
 # **2\\. Proteção contra Demissão sem Justa Causa**
 
