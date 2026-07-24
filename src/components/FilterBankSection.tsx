@@ -1,6 +1,14 @@
 import React, { useMemo } from 'react';
-import { Filter, EyeOff } from 'lucide-react';
+import {
+  Filter,
+  EyeOff,
+  CheckCircle2,
+  XCircle,
+  Layers,
+  Ban,
+} from 'lucide-react';
 import { MultiSelectDropdown, type GroupedOption } from './MultiSelectDropdown';
+import type { PerformanceFilter } from '../App';
 
 export interface FilterBankSectionProps {
   jsonFilesList: string[];
@@ -22,17 +30,27 @@ export interface FilterBankSectionProps {
   setTempBlocoFilter: React.Dispatch<React.SetStateAction<string[]>>;
   tempAnoFilter: number[];
   setTempAnoFilter: React.Dispatch<React.SetStateAction<number[]>>;
+
   tempExcludeResolved: boolean;
   setTempExcludeResolved: React.Dispatch<React.SetStateAction<boolean>>;
+  tempExcludeCancelled: boolean;
+  setTempExcludeCancelled: React.Dispatch<React.SetStateAction<boolean>>;
+
+  tempPerformanceFilter: PerformanceFilter;
+  setTempPerformanceFilter: React.Dispatch<
+    React.SetStateAction<PerformanceFilter>
+  >;
 
   appliedJsonFilter: string[];
   appliedDisciplinaFilter: string[];
   appliedBlocoFilter: string[];
   appliedAnoFilter: number[];
   appliedExcludeResolved: boolean;
+  appliedExcludeCancelled: boolean;
+  appliedPerformanceFilter: PerformanceFilter;
 
   onApplyFilters: () => void;
-  onClearAllFilters?: () => void; // 👈 Adicionada a propriedade opcional na interface
+  onClearAllFilters?: () => void;
 
   totalQuestions: number;
   pageSize: number;
@@ -56,13 +74,19 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
   setTempAnoFilter,
   tempExcludeResolved,
   setTempExcludeResolved,
+  tempExcludeCancelled,
+  setTempExcludeCancelled,
+  tempPerformanceFilter,
+  setTempPerformanceFilter,
   appliedJsonFilter,
   appliedDisciplinaFilter,
   appliedBlocoFilter,
   appliedAnoFilter,
   appliedExcludeResolved,
+  appliedExcludeCancelled,
+  appliedPerformanceFilter,
   onApplyFilters,
-  onClearAllFilters, // 👈 Desestruturada nas props do componente
+  onClearAllFilters,
   totalQuestions,
   pageSize,
   onPageSizeChange,
@@ -108,7 +132,9 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
     tempDisciplinaFilter.length > 0 ||
     tempBlocoFilter.length > 0 ||
     tempAnoFilter.length > 0 ||
-    tempExcludeResolved;
+    tempExcludeResolved ||
+    tempExcludeCancelled ||
+    tempPerformanceFilter !== 'all';
 
   const areArraysEqual = <T extends string | number>(a: T[], b: T[]) => {
     if (a.length !== b.length) return false;
@@ -122,15 +148,19 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
     !areArraysEqual(tempDisciplinaFilter, appliedDisciplinaFilter) ||
     !areArraysEqual(tempBlocoFilter, appliedBlocoFilter) ||
     !areArraysEqual(tempAnoFilter, appliedAnoFilter) ||
-    tempExcludeResolved !== appliedExcludeResolved;
+    tempExcludeResolved !== appliedExcludeResolved ||
+    tempExcludeCancelled !== appliedExcludeCancelled ||
+    tempPerformanceFilter !== appliedPerformanceFilter;
 
   return (
-    <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+    <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 font-['Inter',sans-serif]">
       {/* 1. CABEÇALHO DO CARD */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div className="flex items-center gap-2.5">
-          <Filter className="w-4 h-4 text-indigo-600" />
-          <h3 className="font-bold text-slate-800 text-sm">
+          <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
+            <Filter className="w-4 h-4" />
+          </div>
+          <h3 className="font-bold text-slate-800 text-sm tracking-tight">
             Filtrar Banco de Questões
           </h3>
           <span className="bg-indigo-50 text-indigo-700 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full border border-indigo-100/80">
@@ -151,23 +181,25 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
                 setTempBlocoFilter([]);
                 setTempAnoFilter([]);
                 setTempExcludeResolved(false);
+                setTempExcludeCancelled(false);
+                setTempPerformanceFilter('all');
               }
             }}
-            className="text-xs text-rose-600 hover:text-rose-800 font-medium transition-colors"
+            className="text-xs text-rose-600 hover:text-rose-800 font-bold transition-colors select-none"
           >
-            Limpar todos
+            Limpar filtros
           </button>
         )}
       </div>
 
-      {/* 2. CAMPOS DE FILTRO */}
+      {/* 2. DROPDOWNS DE MULTI-SELEÇÃO */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div>
-          <label className="block text-xs font-semibold text-slate-400 mb-1">
-            Origem / Simulado
+          <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+            Prova
           </label>
           <MultiSelectDropdown
-            title="Todos os JSONs"
+            title="Prova/Simulados"
             options={jsonFilesList}
             selectedOptions={tempJsonFilter}
             onToggle={(item) => {
@@ -192,7 +224,7 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-400 mb-1">
+          <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
             Disciplina
           </label>
           <MultiSelectDropdown
@@ -216,7 +248,7 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-400 mb-1">
+          <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
             Bloco / Assunto
           </label>
           <MultiSelectDropdown
@@ -246,7 +278,7 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-slate-400 mb-1">
+          <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
             Ano
           </label>
           <MultiSelectDropdown
@@ -266,52 +298,123 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
         </div>
       </div>
 
-      {/* 3. RODAPÉ DO CARD */}
-      <div className="pt-3 border-t border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 min-h-[42px]">
-        <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-600 select-none hover:text-slate-800">
-          <input
-            type="checkbox"
-            checked={tempExcludeResolved}
-            onChange={(e) => setTempExcludeResolved(e.target.checked)}
-            className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 accent-indigo-600"
-          />
-          <div className="flex items-center gap-1.5">
-            <EyeOff className="w-3.5 h-3.5 text-slate-400" />
-            <span>Excluir questões já resolvidas do banco</span>
-          </div>
-        </label>
-
-        <div className="flex items-center justify-between md:justify-end gap-4">
-          <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-            <span>Questões por página:</span>
-            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg">
-              {[10, 20, 50].map((size) => (
-                <button
-                  key={size}
-                  type="button"
-                  onClick={() => onPageSizeChange(size)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
-                    pageSize === size
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {hasPendingChanges && (
+      {/* 3. DESEMPENHO E EXCLUSÕES ORGANIZADOS */}
+      <div className="pt-3 border-t border-slate-100 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        {/* FILTRO DE DESEMPENHO COM RÓTULO DE HIERARQUIA */}
+        <div className="space-y-1.5">
+          <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            Meu Desempenho
+          </span>
+          <div className="flex items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200/60 w-fit">
             <button
               type="button"
-              onClick={onApplyFilters}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-xs animate-in fade-in duration-200"
+              onClick={() => setTempPerformanceFilter('all')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                tempPerformanceFilter === 'all'
+                  ? 'bg-white text-indigo-700 shadow-2xs border border-slate-200/80'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
             >
-              Aplicar Filtros
+              <Layers className="w-3.5 h-3.5" />
+              <span>Todas</span>
             </button>
-          )}
+
+            <button
+              type="button"
+              onClick={() => setTempPerformanceFilter('correct')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                tempPerformanceFilter === 'correct'
+                  ? 'bg-emerald-500 text-white shadow-2xs'
+                  : 'text-slate-600 hover:text-emerald-700'
+              }`}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Que acertei</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setTempPerformanceFilter('wrong')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                tempPerformanceFilter === 'wrong'
+                  ? 'bg-rose-500 text-white shadow-2xs'
+                  : 'text-slate-600 hover:text-rose-700'
+              }`}
+            >
+              <XCircle className="w-3.5 h-3.5" />
+              <span>Que errei</span>
+            </button>
+          </div>
         </div>
+
+        {/* GRUPO DE CHECKBOXES DE EXCLUSÃO */}
+        <div className="space-y-1.5">
+          <span className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            Excluir questões
+          </span>
+          <div className="flex flex-wrap items-center gap-4 bg-slate-50 p-2 rounded-xl border border-slate-200/50">
+            {/* Checkbox: Já resolvidas */}
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-600 select-none hover:text-slate-900 transition-colors">
+              <input
+                type="checkbox"
+                checked={tempExcludeResolved}
+                onChange={(e) => setTempExcludeResolved(e.target.checked)}
+                className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 accent-indigo-600"
+              />
+              <div className="flex items-center gap-1.5">
+                <EyeOff className="w-3.5 h-3.5 text-slate-400" />
+                <span>Já resolvidas</span>
+              </div>
+            </label>
+
+            {/* Checkbox: Anuladas */}
+            <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-600 select-none hover:text-slate-900 transition-colors">
+              <input
+                type="checkbox"
+                checked={tempExcludeCancelled}
+                onChange={(e) => setTempExcludeCancelled(e.target.checked)}
+                className="w-4 h-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500 accent-amber-600"
+              />
+              <div className="flex items-center gap-1.5">
+                <Ban className="w-3.5 h-3.5 text-amber-500" />
+                <span>Anuladas</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. RODAPÉ DE PAGINAÇÃO E BOTAO APLICAR */}
+      <div className="pt-3 border-t border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 min-h-[42px]">
+        <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+          <span className="font-semibold text-slate-600">Por página:</span>
+          <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200/50">
+            {[10, 20, 50].map((size) => (
+              <button
+                key={size}
+                type="button"
+                onClick={() => onPageSizeChange(size)}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  pageSize === size
+                    ? 'bg-indigo-600 text-white shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {hasPendingChanges && (
+          <button
+            type="button"
+            onClick={onApplyFilters}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-sm active:scale-95 animate-in fade-in duration-150"
+          >
+            Aplicar Filtros
+          </button>
+        )}
       </div>
     </div>
   );

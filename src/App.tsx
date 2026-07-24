@@ -12,6 +12,7 @@ import { useLocalAnalytics } from './hooks/useLocalAnalytics';
 import { CheckCircle2, RefreshCw } from 'lucide-react';
 import type { Question } from './types/question';
 import { MaterialsSidebarLayout } from './components/MaterialsSidebarLayout';
+
 export interface QuestionWithSource extends Question {
   origemJson: string;
 }
@@ -22,12 +23,16 @@ interface JsonModule {
 
 const LOCAL_STORAGE_FILTERS_KEY = 'simulado_app_applied_filters_v1';
 
+export type PerformanceFilter = 'all' | 'wrong' | 'correct';
+
 interface SavedFilters {
   jsonFilter: string[];
   disciplinaFilter: string[];
   blocoFilter: string[];
   anoFilter: number[];
   excludeResolved: boolean;
+  excludeCancelled: boolean;
+  performanceFilter?: PerformanceFilter;
 }
 
 const getSavedFilters = (): SavedFilters => {
@@ -45,6 +50,8 @@ const getSavedFilters = (): SavedFilters => {
     blocoFilter: [],
     anoFilter: [],
     excludeResolved: false,
+    excludeCancelled: false,
+    performanceFilter: 'all',
   };
 };
 
@@ -71,6 +78,7 @@ export const App: React.FC = () => {
   );
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
 
+  // Estados Temporários dos Filtros
   const [tempJsonFilter, setTempJsonFilter] = useState<string[]>(
     () => getSavedFilters().jsonFilter
   );
@@ -86,7 +94,15 @@ export const App: React.FC = () => {
   const [tempExcludeResolved, setTempExcludeResolved] = useState<boolean>(
     () => getSavedFilters().excludeResolved
   );
+  const [tempExcludeCancelled, setTempExcludeCancelled] = useState<boolean>(
+    () => getSavedFilters().excludeCancelled
+  );
+  const [tempPerformanceFilter, setTempPerformanceFilter] =
+    useState<PerformanceFilter>(
+      () => getSavedFilters().performanceFilter || 'all'
+    );
 
+  // Estados Aplicados dos Filtros
   const [appliedJsonFilter, setAppliedJsonFilter] = useState<string[]>(
     () => getSavedFilters().jsonFilter
   );
@@ -102,6 +118,12 @@ export const App: React.FC = () => {
   const [appliedExcludeResolved, setAppliedExcludeResolved] = useState<boolean>(
     () => getSavedFilters().excludeResolved
   );
+  const [appliedExcludeCancelled, setAppliedExcludeCancelled] =
+    useState<boolean>(() => getSavedFilters().excludeCancelled);
+  const [appliedPerformanceFilter, setAppliedPerformanceFilter] =
+    useState<PerformanceFilter>(
+      () => getSavedFilters().performanceFilter || 'all'
+    );
 
   const [snapshotAnsweredQuestions, setSnapshotAnsweredQuestions] = useState<
     string[]
@@ -211,6 +233,7 @@ export const App: React.FC = () => {
     setTempJsonFilter([]);
   };
 
+  // 🎯 FILTRAGEM COM SUPORTE A CHECKBOX DE EXCLUIR RESOLVIDAS E ANULADAS
   const displayQuestions = useMemo(() => {
     if (activeTab === 'simulado') {
       return simuladoQuestions;
@@ -237,10 +260,26 @@ export const App: React.FC = () => {
       if (appliedAnoFilter.length > 0) {
         filtradas = filtradas.filter((q) => appliedAnoFilter.includes(q.ano));
       }
+
+      // Checkbox: Excluir resolvidas
       if (appliedExcludeResolved) {
         filtradas = filtradas.filter((q) => {
           return !snapshotAnsweredQuestions.includes(q.id);
         });
+      }
+
+      // Checkbox: Excluir anuladas (gabarito === "N")[cite: 6]
+      if (appliedExcludeCancelled) {
+        filtradas = filtradas.filter((q) => q.gabarito !== 'N');
+      }
+
+      // Filtro de Desempenho
+      if (appliedPerformanceFilter === 'correct') {
+        const setCorrect = new Set(analytics.correctAnswerIds);
+        filtradas = filtradas.filter((q) => setCorrect.has(q.id));
+      } else if (appliedPerformanceFilter === 'wrong') {
+        const setWrong = new Set(analytics.wrongAnswerIds);
+        filtradas = filtradas.filter((q) => setWrong.has(q.id));
       }
 
       return filtradas;
@@ -256,7 +295,11 @@ export const App: React.FC = () => {
     appliedBlocoFilter,
     appliedAnoFilter,
     appliedExcludeResolved,
+    appliedExcludeCancelled,
+    appliedPerformanceFilter,
     snapshotAnsweredQuestions,
+    analytics.correctAnswerIds,
+    analytics.wrongAnswerIds,
   ]);
 
   const handleApplyFilters = () => {
@@ -265,6 +308,8 @@ export const App: React.FC = () => {
     setAppliedBlocoFilter(tempBlocoFilter);
     setAppliedAnoFilter(tempAnoFilter);
     setAppliedExcludeResolved(tempExcludeResolved);
+    setAppliedExcludeCancelled(tempExcludeCancelled);
+    setAppliedPerformanceFilter(tempPerformanceFilter);
 
     setSnapshotAnsweredQuestions(analytics.answeredQuestions);
     setCurrentPage(1);
@@ -275,6 +320,8 @@ export const App: React.FC = () => {
       blocoFilter: tempBlocoFilter,
       anoFilter: tempAnoFilter,
       excludeResolved: tempExcludeResolved,
+      excludeCancelled: tempExcludeCancelled,
+      performanceFilter: tempPerformanceFilter,
     };
 
     localStorage.setItem(
@@ -289,12 +336,16 @@ export const App: React.FC = () => {
     setTempBlocoFilter([]);
     setTempAnoFilter([]);
     setTempExcludeResolved(false);
+    setTempExcludeCancelled(false);
+    setTempPerformanceFilter('all');
 
     setAppliedJsonFilter([]);
     setAppliedDisciplinaFilter([]);
     setAppliedBlocoFilter([]);
     setAppliedAnoFilter([]);
     setAppliedExcludeResolved(false);
+    setAppliedExcludeCancelled(false);
+    setAppliedPerformanceFilter('all');
 
     setSnapshotAnsweredQuestions([]);
 
@@ -353,7 +404,7 @@ export const App: React.FC = () => {
       if (resposta) {
         logAnswer(
           q.id,
-          q.taxonomia?.disciplina || 'Geral',
+          q.taxonomia?.bloco || q.taxonomia?.disciplina || 'Geral',
           resposta === q.gabarito
         );
       }
@@ -412,11 +463,17 @@ export const App: React.FC = () => {
               setTempAnoFilter={setTempAnoFilter}
               tempExcludeResolved={tempExcludeResolved}
               setTempExcludeResolved={setTempExcludeResolved}
+              tempExcludeCancelled={tempExcludeCancelled}
+              setTempExcludeCancelled={setTempExcludeCancelled}
+              tempPerformanceFilter={tempPerformanceFilter}
+              setTempPerformanceFilter={setTempPerformanceFilter}
               appliedJsonFilter={appliedJsonFilter}
               appliedDisciplinaFilter={appliedDisciplinaFilter}
               appliedBlocoFilter={appliedBlocoFilter}
               appliedAnoFilter={appliedAnoFilter}
               appliedExcludeResolved={appliedExcludeResolved}
+              appliedExcludeCancelled={appliedExcludeCancelled}
+              appliedPerformanceFilter={appliedPerformanceFilter}
               onApplyFilters={handleApplyFilters}
               onClearAllFilters={handleClearAllFilters}
               totalQuestions={displayQuestions.length}
@@ -441,7 +498,10 @@ export const App: React.FC = () => {
                     ) => {
                       logAnswer(
                         questionId || question.id,
-                        bloco || question.taxonomia?.bloco || 'Geral',
+                        bloco ||
+                          question.taxonomia?.bloco ||
+                          question.taxonomia?.disciplina ||
+                          'Geral',
                         isCorrect,
                         isAnulada
                       );

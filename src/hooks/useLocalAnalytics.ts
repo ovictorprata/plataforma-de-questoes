@@ -1,91 +1,182 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 
-export interface AnalyticsData {
-  daily: { [date: string]: { correct: number; total: number } };
-  subjects: { [bloco: string]: { correct: number; total: number } };
-  global: { correct: number; wrong: number };
-  answeredQuestions: string[]; // Salva os IDs únicos das questões já feitas
+const STORAGE_KEY = 'simulado_analytics_v3';
+
+export interface SubjectStats {
+  correct: number;
+  total: number;
 }
 
+export interface AnalyticsData {
+  correctAnswerIds: string[];
+  wrongAnswerIds: string[];
+  answeredQuestions: string[];
+  daily: Record<string, { correct: number; total: number }>;
+  subjects: Record<string, SubjectStats>;
+  global: {
+    correct: number;
+    wrong: number;
+  };
+}
+
+const getInitialAnalytics = (): AnalyticsData => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const correct = Array.isArray(parsed.correctAnswerIds)
+        ? parsed.correctAnswerIds
+        : [];
+      const wrong = Array.isArray(parsed.wrongAnswerIds)
+        ? parsed.wrongAnswerIds
+        : [];
+
+      return {
+        correctAnswerIds: correct,
+        wrongAnswerIds: wrong,
+        answeredQuestions: Array.from(new Set([...correct, ...wrong])),
+        daily: parsed.daily || {},
+        subjects: parsed.subjects || {},
+        global: parsed.global || {
+          correct: correct.length,
+          wrong: wrong.length,
+        },
+      };
+    }
+  } catch (error) {
+    console.error('Erro ao ler analytics do localStorage:', error);
+  }
+
+  return {
+    correctAnswerIds: [],
+    wrongAnswerIds: [],
+    answeredQuestions: [],
+    daily: {},
+    subjects: {},
+    global: { correct: 0, wrong: 0 },
+  };
+};
+
 export const useLocalAnalytics = () => {
-  const [analytics, setAnalytics] = useState<AnalyticsData>(() => {
-    const saved = localStorage.getItem('exam_platform_analytics');
-    const defaultData = {
+  const [analytics, setAnalytics] =
+    useState<AnalyticsData>(getInitialAnalytics);
+
+  const logAnswer = useCallback(
+    (
+      questionId: string,
+      disciplina: string = 'Geral',
+      isCorrect: boolean,
+      isAnulada?: boolean
+    ) => {
+      if (isAnulada) return;
+
+      const todayKey = new Date().toLocaleDateString('pt-BR');
+
+      setAnalytics((prev) => {
+        const wasCorrect = prev.correctAnswerIds.includes(questionId);
+        const wasWrong = prev.wrongAnswerIds.includes(questionId);
+        const isNewAnswer = !wasCorrect && !wasWrong;
+
+        // 1. Atualiza os arrays de IDs limpos
+        const cleanCorrect = prev.correctAnswerIds.filter(
+          (id) => id !== questionId
+        );
+        const cleanWrong = prev.wrongAnswerIds.filter(
+          (id) => id !== questionId
+        );
+
+        const newCorrectIds = isCorrect
+          ? [...cleanCorrect, questionId]
+          : cleanCorrect;
+        const newWrongIds = !isCorrect
+          ? [...cleanWrong, questionId]
+          : cleanWrong;
+
+        // 2. Calcula variação dos totais
+        let correctDiff = 0;
+        let wrongDiff = 0;
+
+        if (isNewAnswer) {
+          if (isCorrect) correctDiff = 1;
+          else wrongDiff = 1;
+        } else if (wasCorrect && !isCorrect) {
+          // Mudou de acerto para erro
+          correctDiff = -1;
+          wrongDiff = 1;
+        } else if (wasWrong && isCorrect) {
+          // Mudou de erro para acerto
+          correctDiff = 1;
+          wrongDiff = -1;
+        }
+
+        // 3. Atualiza Globais
+        const newGlobal = {
+          correct: Math.max(0, prev.global.correct + correctDiff),
+          wrong: Math.max(0, prev.global.wrong + wrongDiff),
+        };
+
+        // 4. Atualiza Matéria/Assunto
+        const currentSub = prev.subjects[disciplina] || {
+          correct: 0,
+          total: 0,
+        };
+        const newSubject = {
+          correct: Math.max(0, currentSub.correct + correctDiff),
+          total: isNewAnswer ? currentSub.total + 1 : currentSub.total,
+        };
+
+        // 5. Atualiza Histórico Diário
+        const currentDaily = prev.daily[todayKey] || { correct: 0, total: 0 };
+        const newDaily = {
+          correct: Math.max(0, currentDaily.correct + correctDiff),
+          total: isNewAnswer ? currentDaily.total + 1 : currentDaily.total,
+        };
+
+        const nextState: AnalyticsData = {
+          correctAnswerIds: newCorrectIds,
+          wrongAnswerIds: newWrongIds,
+          answeredQuestions: Array.from(
+            new Set([...newCorrectIds, ...newWrongIds])
+          ),
+          global: newGlobal,
+          subjects: {
+            ...prev.subjects,
+            [disciplina]: newSubject,
+          },
+          daily: {
+            ...prev.daily,
+            [todayKey]: newDaily,
+          },
+        };
+
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
+        } catch (err) {
+          console.error('Erro ao salvar no localStorage:', err);
+        }
+
+        return nextState;
+      });
+    },
+    []
+  );
+
+  const clearAnalytics = useCallback(() => {
+    const empty: AnalyticsData = {
+      correctAnswerIds: [],
+      wrongAnswerIds: [],
+      answeredQuestions: [],
       daily: {},
       subjects: {},
       global: { correct: 0, wrong: 0 },
-      answeredQuestions: [],
     };
+    setAnalytics(empty);
+    localStorage.removeItem(STORAGE_KEY);
+  }, []);
 
-    if (!saved) return defaultData;
-
-    try {
-      const parsed = JSON.parse(saved);
-      return {
-        daily: parsed.daily || {},
-        subjects: parsed.subjects || {},
-        global: parsed.global || { correct: 0, wrong: 0 },
-        answeredQuestions: parsed.answeredQuestions || [],
-      };
-    } catch {
-      return defaultData;
-    }
-  });
-
-  useEffect(() => {
-    localStorage.setItem('exam_platform_analytics', JSON.stringify(analytics));
-  }, [analytics]);
-
-  const logAnswer = (
-    questionId: string,
-    bloco: string,
-    isCorrect: boolean,
-    isAnulada: boolean = false
-  ) => {
-    const today = new Date().toLocaleDateString('pt-BR'); // Força estritamente DD/MM/AAAA
-
-    setAnalytics((prev) => {
-      // Evita duplicar o ID caso o usuário responda a mesma questão mais de uma vez
-      const updatedAnswers = prev.answeredQuestions.includes(questionId)
-        ? prev.answeredQuestions
-        : [...prev.answeredQuestions, questionId];
-
-      // 🎯 Se a questão for ANULADA, registramos apenas no 'answeredQuestions'
-      // para ela ser considerada "resolvida", mas IGNORAMOS a contagem de acertos/erros no dashboard.
-      if (isAnulada) {
-        return {
-          ...prev,
-          answeredQuestions: updatedAnswers,
-        };
-      }
-
-      const currentDaily = prev.daily?.[today] || { correct: 0, total: 0 };
-      const currentSubject = prev.subjects?.[bloco] || { correct: 0, total: 0 };
-      const currentGlobal = prev.global || { correct: 0, wrong: 0 };
-
-      return {
-        daily: {
-          ...prev.daily,
-          [today]: {
-            correct: currentDaily.correct + (isCorrect ? 1 : 0),
-            total: currentDaily.total + 1,
-          },
-        },
-        subjects: {
-          ...prev.subjects,
-          [bloco]: {
-            correct: currentSubject.correct + (isCorrect ? 1 : 0),
-            total: currentSubject.total + 1,
-          },
-        },
-        global: {
-          correct: currentGlobal.correct + (isCorrect ? 1 : 0),
-          wrong: currentGlobal.wrong + (isCorrect ? 0 : 1),
-        },
-        answeredQuestions: updatedAnswers,
-      };
-    });
+  return {
+    analytics,
+    logAnswer,
+    clearAnalytics,
   };
-
-  return { analytics, logAnswer };
 };
