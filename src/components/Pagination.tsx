@@ -101,7 +101,10 @@ export const Pagination: React.FC<PaginationProps> = ({
         {getPageNumbers().map((page, index) => {
           if (page === '...') {
             return (
-              <span key={`dots-${index}`} className="px-2 text-slate-400 text-xs font-bold">
+              <span
+                key={`dots-${index}`}
+                className="px-2 text-slate-400 text-xs font-bold"
+              >
                 ...
               </span>
             );

@@ -7,7 +7,10 @@ interface ImageLightboxModalProps {
   onClose: () => void;
 }
 
-export const ImageLightboxModal: React.FC<ImageLightboxModalProps> = ({ activeImage, onClose }) => {
+export const ImageLightboxModal: React.FC<ImageLightboxModalProps> = ({
+  activeImage,
+  onClose,
+}) => {
   return (
     <AnimatePresence>
       {activeImage && (

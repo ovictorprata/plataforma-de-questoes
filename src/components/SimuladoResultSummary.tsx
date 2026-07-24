@@ -1,5 +1,12 @@
 import React, { useMemo } from 'react';
-import { Award, BookOpen, CheckCircle2, XCircle, AlertCircle, Clock } from 'lucide-react';
+import {
+  Award,
+  BookOpen,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Clock,
+} from 'lucide-react';
 import type { Question } from '../types/question';
 import type { QuestionWithSource } from '../App';
 
@@ -22,7 +29,8 @@ export const SimuladoResultSummary: React.FC<SimuladoResultSummaryProps> = ({
     const blocosMap: Record<string, { acertos: number; total: number }> = {};
 
     questions.forEach((q) => {
-      const origem = 'origemJson' in q ? (q as QuestionWithSource).origemJson : 'q';
+      const origem =
+        'origemJson' in q ? (q as QuestionWithSource).origemJson : 'q';
       const idComposto = `${origem}-${q.id}`;
       const respostaUsuario = answers[idComposto];
       const bloco = q.taxonomia?.disciplina || q.taxonomia?.bloco || 'Geral';
@@ -44,7 +52,9 @@ export const SimuladoResultSummary: React.FC<SimuladoResultSummaryProps> = ({
 
     const totalQuestions = questions.length;
     const taxaAcertoGeral =
-      totalQuestions > 0 ? Math.round((totalAcertos / totalQuestions) * 100) : 0;
+      totalQuestions > 0
+        ? Math.round((totalAcertos / totalQuestions) * 100)
+        : 0;
 
     const tempoMedioPorQuestao =
       totalQuestions > 0 ? Math.round(tempoTotalSegundos / totalQuestions) : 0;
@@ -75,9 +85,13 @@ export const SimuladoResultSummary: React.FC<SimuladoResultSummaryProps> = ({
   const radius = 42;
   const circumference = 2 * Math.PI * radius;
   const acertosPercent =
-    metrics.totalQuestions > 0 ? metrics.totalAcertos / metrics.totalQuestions : 0;
+    metrics.totalQuestions > 0
+      ? metrics.totalAcertos / metrics.totalQuestions
+      : 0;
   const errosPercent =
-    metrics.totalQuestions > 0 ? metrics.totalErros / metrics.totalQuestions : 0;
+    metrics.totalQuestions > 0
+      ? metrics.totalErros / metrics.totalQuestions
+      : 0;
 
   const strokeDashAcertos = acertosPercent * circumference;
   const strokeDashErros = errosPercent * circumference;
@@ -92,7 +106,9 @@ export const SimuladoResultSummary: React.FC<SimuladoResultSummaryProps> = ({
             <Award className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-slate-800">Simulado Finalizado!</h2>
+            <h2 className="text-base font-bold text-slate-800">
+              Simulado Finalizado!
+            </h2>
             <p className="text-xs text-slate-500">
               Confira abaixo o seu desempenho detalhado nesta prova.
             </p>
@@ -104,7 +120,10 @@ export const SimuladoResultSummary: React.FC<SimuladoResultSummaryProps> = ({
         {/* Gráfico de Pizza em Tons Suaves */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-6 bg-slate-50/60 p-4 rounded-xl border border-slate-100">
           <div className="relative w-36 h-36 shrink-0 flex items-center justify-center">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+            <svg
+              className="w-full h-full transform -rotate-90"
+              viewBox="0 0 100 100"
+            >
               <circle
                 cx="50"
                 cy="50"
@@ -152,7 +171,9 @@ export const SimuladoResultSummary: React.FC<SimuladoResultSummaryProps> = ({
                 <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                 <span className="font-medium text-slate-600">Acertos:</span>
               </div>
-              <strong className="text-slate-800 font-bold">{metrics.totalAcertos}</strong>
+              <strong className="text-slate-800 font-bold">
+                {metrics.totalAcertos}
+              </strong>
             </div>
 
             <div className="flex items-center justify-between sm:justify-start gap-4">
@@ -160,16 +181,22 @@ export const SimuladoResultSummary: React.FC<SimuladoResultSummaryProps> = ({
                 <XCircle className="w-4 h-4 text-rose-400" />
                 <span className="font-medium text-slate-600">Erros:</span>
               </div>
-              <strong className="text-slate-800 font-bold">{metrics.totalErros}</strong>
+              <strong className="text-slate-800 font-bold">
+                {metrics.totalErros}
+              </strong>
             </div>
 
             {metrics.totalEmBranco > 0 && (
               <div className="flex items-center justify-between sm:justify-start gap-4">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-slate-400" />
-                  <span className="font-medium text-slate-600">Sem resposta:</span>
+                  <span className="font-medium text-slate-600">
+                    Sem resposta:
+                  </span>
                 </div>
-                <strong className="text-slate-800 font-bold">{metrics.totalEmBranco}</strong>
+                <strong className="text-slate-800 font-bold">
+                  {metrics.totalEmBranco}
+                </strong>
               </div>
             )}
 
@@ -177,7 +204,9 @@ export const SimuladoResultSummary: React.FC<SimuladoResultSummaryProps> = ({
               <div className="flex items-center justify-between sm:justify-start gap-4 pt-1.5 border-t border-slate-200/60">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-violet-500" />
-                  <span className="font-medium text-slate-600">Tempo/Questão:</span>
+                  <span className="font-medium text-slate-600">
+                    Tempo/Questão:
+                  </span>
                 </div>
                 <strong className="text-violet-600 font-bold font-mono">
                   {metrics.tempoMedioFormatado}

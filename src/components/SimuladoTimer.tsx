@@ -48,8 +48,8 @@ export const SimuladoTimer: React.FC<SimuladoTimerProps> = ({
             isFinished
               ? 'bg-rose-100 text-rose-600'
               : isWarning
-              ? 'bg-amber-100 text-amber-600 animate-pulse'
-              : 'bg-indigo-50 text-indigo-600'
+                ? 'bg-amber-100 text-amber-600 animate-pulse'
+                : 'bg-indigo-50 text-indigo-600'
           }`}
         >
           {isWarning || isFinished ? (
@@ -70,8 +70,8 @@ export const SimuladoTimer: React.FC<SimuladoTimerProps> = ({
                 isFinished
                   ? 'text-rose-600'
                   : isWarning
-                  ? 'text-amber-600'
-                  : 'text-slate-800'
+                    ? 'text-amber-600'
+                    : 'text-slate-800'
               }`}
             >
               {isFinished ? 'Tempo Esgotado!' : formatTime(timeLeft)}

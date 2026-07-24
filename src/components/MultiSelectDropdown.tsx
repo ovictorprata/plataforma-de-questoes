@@ -32,7 +32,10 @@ export function MultiSelectDropdown<T extends string | number>({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -52,7 +55,11 @@ export function MultiSelectDropdown<T extends string | number>({
   }, [isOpen]);
 
   const isGrouped = useMemo(() => {
-    return options.length > 0 && typeof options[0] === 'object' && 'group' in options[0];
+    return (
+      options.length > 0 &&
+      typeof options[0] === 'object' &&
+      'group' in options[0]
+    );
   }, [options]);
 
   const processedGroups = useMemo(() => {
@@ -168,7 +175,9 @@ export function MultiSelectDropdown<T extends string | number>({
                 // Checa quantos itens do grupo estão selecionados
                 const allGroupItemsSelected =
                   groupObj.items.length > 0 &&
-                  groupObj.items.every((item) => selectedOptions.includes(item));
+                  groupObj.items.every((item) =>
+                    selectedOptions.includes(item)
+                  );
 
                 return (
                   <div key={groupObj.group || idx} className="space-y-1">
@@ -183,11 +192,16 @@ export function MultiSelectDropdown<T extends string | number>({
                           <button
                             type="button"
                             onClick={() =>
-                              onToggleGroup(groupObj.items, !allGroupItemsSelected)
+                              onToggleGroup(
+                                groupObj.items,
+                                !allGroupItemsSelected
+                              )
                             }
                             className="text-[10px] font-bold text-slate-400 hover:text-indigo-600 transition-colors uppercase"
                           >
-                            {allGroupItemsSelected ? 'Desmarcar todos' : 'Marcar todos'}
+                            {allGroupItemsSelected
+                              ? 'Desmarcar todos'
+                              : 'Marcar todos'}
                           </button>
                         )}
                       </div>

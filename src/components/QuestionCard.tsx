@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Flag, HelpCircle, X, Send, AlertTriangle, CheckCircle2, Lightbulb, XCircle } from 'lucide-react';
+import {
+  Flag,
+  HelpCircle,
+  X,
+  Send,
+  AlertTriangle,
+  CheckCircle2,
+  Lightbulb,
+  XCircle,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Question } from '../types/question';
 
@@ -11,11 +20,13 @@ import { ImageLightboxModal } from './question/ImageLightboxModal';
 import { MathText } from './MathText';
 
 // 🚀 Dados reais do seu Google Forms
-const REPORT_FORM_ACTION_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLSdCCPEONgifuMsDuKoW2Jy3Dm3wPqQVHMhBU-YJLDwsF0Oamg/formResponse';
-const ENTRY_TIPO_PROBLEMA = 'entry.902632617';   // Qual é o problema?
-const ENTRY_CODIGO_QUESTAO = 'entry.510910820';  // Qual é o código da questão?
+const REPORT_FORM_ACTION_URL =
+  'https://docs.google.com/forms/u/0/d/e/1FAIpQLSdCCPEONgifuMsDuKoW2Jy3Dm3wPqQVHMhBU-YJLDwsF0Oamg/formResponse';
+const ENTRY_TIPO_PROBLEMA = 'entry.902632617'; // Qual é o problema?
+const ENTRY_CODIGO_QUESTAO = 'entry.510910820'; // Qual é o código da questão?
 const ENTRY_DETALHE_PROBLEMA = 'entry.607703748'; // Detalhe o problema:
-const ANSWERS_FORM_ACTION_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLSf9liLj43-pirNjAqSTmsU6HQclOuj9sH4mW5I7LFoI6CSSzQ/formResponse';
+const ANSWERS_FORM_ACTION_URL =
+  'https://docs.google.com/forms/u/0/d/e/1FAIpQLSf9liLj43-pirNjAqSTmsU6HQclOuj9sH4mW5I7LFoI6CSSzQ/formResponse';
 const ENTRY_ID_PERGUNTA = 'entry.1117922377'; // ID Pergunta
 const ENTRY_RESPOSTA = 'entry.821502335';
 
@@ -34,7 +45,11 @@ const OPCOES_PROBLEMA = [
   'Erro de digitação/formatação no enunciado',
 ];
 
-const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, questionId }) => {
+const ReportModal: React.FC<ReportModalProps> = ({
+  isOpen,
+  onClose,
+  questionId,
+}) => {
   const [tipoProblema, setTipoProblema] = useState<string>('');
   const [detalhe, setDetalhe] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -104,8 +119,12 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, questionId }
         {isSuccess ? (
           <div className="py-8 text-center space-y-2">
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto animate-bounce" />
-            <p className="text-sm font-bold text-slate-800">Relato enviado com sucesso!</p>
-            <p className="text-xs text-slate-500">Obrigado por ajudar a melhorar o banco de questões.</p>
+            <p className="text-sm font-bold text-slate-800">
+              Relato enviado com sucesso!
+            </p>
+            <p className="text-xs text-slate-500">
+              Obrigado por ajudar a melhorar o banco de questões.
+            </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -181,7 +200,12 @@ const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, questionId }
 interface QuestionCardProps {
   question: Question;
   // 🎯 Assinatura atualizada: (isCorrect, isAnulada, questionId, bloco)
-  onAnswerLogged?: (isCorrect: boolean, isAnulada?: boolean, questionId?: string, bloco?: string) => void;
+  onAnswerLogged?: (
+    isCorrect: boolean,
+    isAnulada?: boolean,
+    questionId?: string,
+    bloco?: string
+  ) => void;
   onReportIssue?: (questionId: string) => void;
   isSimulado?: boolean;
   isSubmitted?: boolean;
@@ -250,7 +274,9 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     if (activeIsSubmitted) return;
 
     setStruckOptions((prev) => {
-      const active = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
+      const active = prev.includes(key)
+        ? prev.filter((k) => k !== key)
+        : [...prev, key];
       if (active.includes(key) && activeSelectedKey === key) {
         if (!isSimulado) setLocalSelectedKey(null);
       }
@@ -318,7 +344,9 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
         {question.enunciado_inicio && (
           <p className="text-slate-800 text-base leading-relaxed font-medium whitespace-pre-line">
-            <span className="text-indigo-600 font-bold mr-1.5">{question.id.toUpperCase()}.</span>
+            <span className="text-indigo-600 font-bold mr-1.5">
+              {question.id.toUpperCase()}.
+            </span>
             <MathText text={question.enunciado_inicio} variant="enunciado" />
           </p>
         )}
@@ -332,7 +360,9 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
         {question.enunciado_fim && (
           <p className="text-slate-800 text-base leading-relaxed font-medium whitespace-pre-line">
             {!question.enunciado_inicio && (
-              <span className="text-indigo-600 font-bold mr-1.5">{question.id.toUpperCase()}.</span>
+              <span className="text-indigo-600 font-bold mr-1.5">
+                {question.id.toUpperCase()}.
+              </span>
             )}
             <MathText text={question.enunciado_fim} variant="enunciado" />
           </p>
@@ -373,12 +403,15 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       )}
 
       {/* ⚠️ Alerta Visual de Questão Anulada (Exibido apenas se o gabarito for 'N') */}
-     {question.gabarito?.toUpperCase() === 'N' && (
-      <div className="flex items-center gap-2.5 p-3 mb-4 bg-rose-50/90 border border-rose-200/90 rounded-xl text-rose-900 text-xs font-semibold shadow-xs">
-        <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
-        <span>Esta questão foi <strong>ANULADA</strong> e não possui alternativa correta.</span>
-      </div>
-    )}
+      {question.gabarito?.toUpperCase() === 'N' && (
+        <div className="flex items-center gap-2.5 p-3 mb-4 bg-rose-50/90 border border-rose-200/90 rounded-xl text-rose-900 text-xs font-semibold shadow-xs">
+          <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          <span>
+            Esta questão foi <strong>ANULADA</strong> e não possui alternativa
+            correta.
+          </span>
+        </div>
+      )}
 
       {/* Lista de Alternativas */}
       <div className="space-y-2 mb-6">
@@ -420,7 +453,8 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               </span>
             </div>
             <p className="leading-relaxed pl-6 text-slate-600 whitespace-pre-line">
-              {question.explicacao || 'Nenhuma explicação cadastrada para esta questão.'}
+              {question.explicacao ||
+                'Nenhuma explicação cadastrada para esta questão.'}
             </p>
           </motion.div>
         )}
@@ -451,7 +485,10 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       </div>
 
       {/* Modal Zoom da Imagem */}
-      <ImageLightboxModal activeImage={activeImage} onClose={() => setActiveImage(null)} />
+      <ImageLightboxModal
+        activeImage={activeImage}
+        onClose={() => setActiveImage(null)}
+      />
 
       {/* Modal Silencioso de Reportar Problema via Google Forms */}
       <ReportModal

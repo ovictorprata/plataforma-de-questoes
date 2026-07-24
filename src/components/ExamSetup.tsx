@@ -7,7 +7,10 @@ export interface ExamSetupProps {
   onGenerate: (shuffledQuestions: Question[]) => void;
 }
 
-export const ExamSetup: React.FC<ExamSetupProps> = ({ questionsMasterList, onGenerate }) => {
+export const ExamSetup: React.FC<ExamSetupProps> = ({
+  questionsMasterList,
+  onGenerate,
+}) => {
   const [selectedSubject, setSelectedSubject] = useState<string>('todos');
   const [questionCount, setQuestionCount] = useState<number>(10);
 
@@ -43,8 +46,12 @@ export const ExamSetup: React.FC<ExamSetupProps> = ({ questionsMasterList, onGen
           <Sparkles className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-base font-bold text-slate-900">Configurar Novo Simulado</h2>
-          <p className="text-xs text-slate-500">Escolha a matéria e a quantidade de questões para praticar</p>
+          <h2 className="text-base font-bold text-slate-900">
+            Configurar Novo Simulado
+          </h2>
+          <p className="text-xs text-slate-500">
+            Escolha a matéria e a quantidade de questões para praticar
+          </p>
         </div>
       </div>
 
@@ -58,7 +65,10 @@ export const ExamSetup: React.FC<ExamSetupProps> = ({ questionsMasterList, onGen
             onChange={(e) => setSelectedSubject(e.target.value)}
             className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-medium text-slate-700 focus:outline-none focus:border-indigo-600 transition-all"
           >
-            <option value="todos">Todas as Disciplinas ({questionsMasterList.length} questões disponíveis)</option>
+            <option value="todos">
+              Todas as Disciplinas ({questionsMasterList.length} questões
+              disponíveis)
+            </option>
             {disciplinasDisponiveis.map((disciplina) => {
               const totalNaMateria = questionsMasterList.filter(
                 (q) =>

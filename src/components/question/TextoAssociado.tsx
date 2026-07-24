@@ -6,7 +6,9 @@ interface TextoAssociadoAccordionProps {
   textoId?: string;
 }
 
-export const TextoAssociadoAccordion: React.FC<TextoAssociadoAccordionProps> = ({ textoId }) => {
+export const TextoAssociadoAccordion: React.FC<
+  TextoAssociadoAccordionProps
+> = ({ textoId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const textoApoio = getTextoAssociadoById(textoId);
 
@@ -21,7 +23,9 @@ export const TextoAssociadoAccordion: React.FC<TextoAssociadoAccordionProps> = (
       >
         <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-indigo-600 shrink-0" />
-          <span className="truncate">{textoApoio.titulo || 'Ler Texto de Apoio'}</span>
+          <span className="truncate">
+            {textoApoio.titulo || 'Ler Texto de Apoio'}
+          </span>
         </div>
         {isOpen ? (
           <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />

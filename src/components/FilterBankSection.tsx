@@ -130,7 +130,9 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div className="flex items-center gap-2.5">
           <Filter className="w-4 h-4 text-indigo-600" />
-          <h3 className="font-bold text-slate-800 text-sm">Filtrar Banco de Questões</h3>
+          <h3 className="font-bold text-slate-800 text-sm">
+            Filtrar Banco de Questões
+          </h3>
           <span className="bg-indigo-50 text-indigo-700 text-xs font-mono font-bold px-2.5 py-0.5 rounded-full border border-indigo-100/80">
             {totalQuestions} {totalQuestions === 1 ? 'questão' : 'questões'}
           </span>
@@ -254,7 +256,9 @@ export const FilterBankSection: React.FC<FilterBankSectionProps> = ({
             onToggle={(item) => {
               const itemNum = Number(item);
               setTempAnoFilter((prev) =>
-                prev.includes(itemNum) ? prev.filter((i) => i !== itemNum) : [...prev, itemNum]
+                prev.includes(itemNum)
+                  ? prev.filter((i) => i !== itemNum)
+                  : [...prev, itemNum]
               );
             }}
             onClear={() => setTempAnoFilter([])}

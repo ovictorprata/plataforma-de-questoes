@@ -1,6 +1,22 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from 'react';
 import { MaterialViewer } from './MaterialViewer';
-import { ChevronRight, ChevronDown, FileText, Folder, Menu, X, GripVertical, BookOpen, Search } from 'lucide-react';
+import {
+  ChevronRight,
+  ChevronDown,
+  FileText,
+  Folder,
+  Menu,
+  X,
+  GripVertical,
+  BookOpen,
+  Search,
+} from 'lucide-react';
 import type { Question } from '../types/question';
 
 export interface TreeNode {
@@ -16,7 +32,8 @@ interface MaterialsSidebarLayoutProps {
   masterQuestions: Question[];
 }
 
-const cleanName = (str: string) => str.replace(/^\d+[_]/, '').replace(/_/g, ' ');
+const cleanName = (str: string) =>
+  str.replace(/^\d+[_]/, '').replace(/_/g, ' ');
 
 interface TreeItemProps {
   node: TreeNode;
@@ -25,7 +42,12 @@ interface TreeItemProps {
   depth?: number;
 }
 
-const TreeItem: React.FC<TreeItemProps> = ({ node, activeId, onSelectFile, depth = 0 }) => {
+const TreeItem: React.FC<TreeItemProps> = ({
+  node,
+  activeId,
+  onSelectFile,
+  depth = 0,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   if (!node.isFolder && node.id) {
@@ -41,8 +63,12 @@ const TreeItem: React.FC<TreeItemProps> = ({ node, activeId, onSelectFile, depth
         }`}
         style={{ paddingLeft: `${Math.max(0.6, depth * 0.75)}rem` }}
       >
-        <FileText className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
-        <span className="truncate capitalize font-['Inter',sans-serif]">{cleanName(node.name)}</span>
+        <FileText
+          className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`}
+        />
+        <span className="truncate capitalize font-['Inter',sans-serif]">
+          {cleanName(node.name)}
+        </span>
       </button>
     );
   }
@@ -91,7 +117,8 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
   masterQuestions,
 }) => {
   const [materialContent, setMaterialContent] = useState<string>('');
-  const [isSidebarOpenMobile, setIsSidebarOpenMobile] = useState<boolean>(false);
+  const [isSidebarOpenMobile, setIsSidebarOpenMobile] =
+    useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   // 🎯 Estado para calcular a sobreposição com o Footer
@@ -137,7 +164,15 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
     });
 
     const root: Record<string, TreeNode> = {};
-    const filesMap: Record<string, { title: string; folderPath: string; path: string; loader: () => Promise<string> }> = {};
+    const filesMap: Record<
+      string,
+      {
+        title: string;
+        folderPath: string;
+        path: string;
+        loader: () => Promise<string>;
+      }
+    > = {};
 
     for (const rawPath in modules) {
       const relativePath = rawPath.replace('../data/materiais/', '');
@@ -187,10 +222,11 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
     if (!searchTerm.trim()) return null;
     const lower = searchTerm.toLowerCase();
 
-    return Object.entries(flatFiles).filter(([_, file]) =>
-      file.title.toLowerCase().includes(lower) ||
-      file.folderPath.toLowerCase().includes(lower) ||
-      file.path.toLowerCase().includes(lower)
+    return Object.entries(flatFiles).filter(
+      ([_, file]) =>
+        file.title.toLowerCase().includes(lower) ||
+        file.folderPath.toLowerCase().includes(lower) ||
+        file.path.toLowerCase().includes(lower)
     );
   }, [searchTerm, flatFiles]);
 
@@ -199,7 +235,9 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
     return keys.length > 0 ? keys[0] : null;
   }, [flatFiles]);
 
-  const [activeMaterialId, setActiveMaterialId] = useState<string | null>(() => firstFileId);
+  const [activeMaterialId, setActiveMaterialId] = useState<string | null>(
+    () => firstFileId
+  );
 
   const currentActiveId = activeMaterialId || firstFileId;
 
@@ -212,60 +250,79 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
   }, [currentActiveId, flatFiles]);
 
   // 🎯 Arraste da Sidebar
-  const handleSidebarPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.currentTarget.setPointerCapture(e.pointerId);
-    setIsResizingSidebar(true);
-  }, []);
+  const handleSidebarPointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.currentTarget.setPointerCapture(e.pointerId);
+      setIsResizingSidebar(true);
+    },
+    []
+  );
 
-  const handleSidebarPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (isResizingSidebar) {
-      const newWidth = e.clientX;
-      if (newWidth >= 200 && newWidth <= 420) {
-        setSidebarWidth(newWidth);
+  const handleSidebarPointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (isResizingSidebar) {
+        const newWidth = e.clientX;
+        if (newWidth >= 200 && newWidth <= 420) {
+          setSidebarWidth(newWidth);
+        }
       }
-    }
-  }, [isResizingSidebar]);
+    },
+    [isResizingSidebar]
+  );
 
-  const handleSidebarPointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (isResizingSidebar) {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-      setIsResizingSidebar(false);
-    }
-  }, [isResizingSidebar]);
+  const handleSidebarPointerUp = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (isResizingSidebar) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+        setIsResizingSidebar(false);
+      }
+    },
+    [isResizingSidebar]
+  );
 
   // 🎯 Arraste da Largura do Conteúdo (Corrigido para capturar o movimento relativo da tela)
-  const handleContentPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.currentTarget.setPointerCapture(e.pointerId);
-    setIsResizingContent(true);
-  }, []);
+  const handleContentPointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.currentTarget.setPointerCapture(e.pointerId);
+      setIsResizingContent(true);
+    },
+    []
+  );
 
-  const handleContentPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (isResizingContent) {
-      const containerLeft = containerRef.current?.getBoundingClientRect().left || 0;
-      const calculatedWidth = e.clientX - containerLeft - sidebarWidth - 40;
-      const maxAllowedWidth = window.innerWidth - sidebarWidth - 60;
+  const handleContentPointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (isResizingContent) {
+        const containerLeft =
+          containerRef.current?.getBoundingClientRect().left || 0;
+        const calculatedWidth = e.clientX - containerLeft - sidebarWidth - 40;
+        const maxAllowedWidth = window.innerWidth - sidebarWidth - 60;
 
-      if (calculatedWidth >= 400 && calculatedWidth <= maxAllowedWidth) {
-        setContentWidth(calculatedWidth);
-      } else if (calculatedWidth > maxAllowedWidth) {
-        setContentWidth(maxAllowedWidth);
+        if (calculatedWidth >= 400 && calculatedWidth <= maxAllowedWidth) {
+          setContentWidth(calculatedWidth);
+        } else if (calculatedWidth > maxAllowedWidth) {
+          setContentWidth(maxAllowedWidth);
+        }
       }
-    }
-  }, [isResizingContent, sidebarWidth]);
+    },
+    [isResizingContent, sidebarWidth]
+  );
 
-  const handleContentPointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (isResizingContent) {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-      setIsResizingContent(false);
-    }
-  }, [isResizingContent]);
+  const handleContentPointerUp = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (isResizingContent) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+        setIsResizingContent(false);
+      }
+    },
+    [isResizingContent]
+  );
 
   const isAnyResizing = isResizingSidebar || isResizingContent;
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className={`min-h-[calc(100vh-3.5rem)] w-full relative ${
         isAnyResizing ? 'select-none cursor-col-resize' : ''
@@ -280,7 +337,9 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
           <div className="flex items-center gap-2 truncate">
             <BookOpen className="w-4 h-4 text-indigo-600 shrink-0" />
             <span className="truncate text-slate-900 font-['Inter',sans-serif]">
-              {currentActiveId && flatFiles[currentActiveId] ? flatFiles[currentActiveId].title : 'Selecionar Aula'}
+              {currentActiveId && flatFiles[currentActiveId]
+                ? flatFiles[currentActiveId].title
+                : 'Selecionar Aula'}
             </span>
           </div>
           <div className="flex items-center gap-1 text-indigo-600 font-bold text-xs bg-indigo-100/60 px-2 py-1 rounded-lg shrink-0">
@@ -292,20 +351,22 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
 
       {/* 📱 2. MODAL MOBILE */}
       {isSidebarOpenMobile && (
-        <div 
+        <div
           className="md:hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
           onClick={() => setIsSidebarOpenMobile(false)}
         >
-          <div 
+          <div
             className="w-full max-w-sm bg-white rounded-3xl h-[85vh] flex flex-col p-5 shadow-2xl space-y-3 animate-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-2 border-b border-slate-100 shrink-0">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-indigo-600" />
-                <span className="text-sm font-bold text-slate-900">Índice do Material</span>
+                <span className="text-sm font-bold text-slate-900">
+                  Índice do Material
+                </span>
               </div>
-              <button 
+              <button
                 type="button"
                 onClick={() => setIsSidebarOpenMobile(false)}
                 className="p-1.5 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800"
@@ -336,7 +397,9 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
             <div className="overflow-y-auto space-y-2 flex-1 pr-1">
               {filteredFiles ? (
                 filteredFiles.length === 0 ? (
-                  <p className="text-xs text-slate-400 text-center py-6 font-['Inter',sans-serif]">Nenhum material encontrado.</p>
+                  <p className="text-xs text-slate-400 text-center py-6 font-['Inter',sans-serif]">
+                    Nenhum material encontrado.
+                  </p>
                 ) : (
                   <div className="space-y-1">
                     {filteredFiles.map(([id, file]) => {
@@ -356,11 +419,17 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
                           }`}
                         >
                           <div className="flex items-center gap-2 w-full truncate">
-                            <FileText className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                            <span className="truncate capitalize font-['Inter',sans-serif]">{file.title}</span>
+                            <FileText
+                              className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`}
+                            />
+                            <span className="truncate capitalize font-['Inter',sans-serif]">
+                              {file.title}
+                            </span>
                           </div>
                           {file.folderPath && (
-                            <span className={`text-[10px] pl-5 truncate ${isActive ? 'text-indigo-100' : 'text-slate-400'}`}>
+                            <span
+                              className={`text-[10px] pl-5 truncate ${isActive ? 'text-indigo-100' : 'text-slate-400'}`}
+                            >
                               {file.folderPath}
                             </span>
                           )}
@@ -389,10 +458,10 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
       )}
 
       {/* 🖥️ 3. MENU LATERAL DESKTOP (FIXO) */}
-      <aside 
-        style={{ 
+      <aside
+        style={{
           width: `${sidebarWidth}px`,
-          height: `calc(100vh - 3.5rem - ${footerOverlap}px)` 
+          height: `calc(100vh - 3.5rem - ${footerOverlap}px)`,
         }}
         className="hidden md:block fixed top-14 left-0 overflow-y-auto overflow-x-hidden p-4 bg-slate-50/70 border-r border-slate-200/80 z-20 transition-[height] duration-75 ease-out"
       >
@@ -420,10 +489,14 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
         </div>
 
         {Object.keys(tree).length === 0 ? (
-          <p className="text-xs text-slate-400 p-2 font-['Inter',sans-serif]">Nenhum material carregado.</p>
+          <p className="text-xs text-slate-400 p-2 font-['Inter',sans-serif]">
+            Nenhum material carregado.
+          </p>
         ) : filteredFiles ? (
           filteredFiles.length === 0 ? (
-            <p className="text-xs text-slate-400 p-2 text-center font-['Inter',sans-serif]">Nenhum material encontrado.</p>
+            <p className="text-xs text-slate-400 p-2 text-center font-['Inter',sans-serif]">
+              Nenhum material encontrado.
+            </p>
           ) : (
             <div className="space-y-1">
               <div className="px-1 text-[10px] font-semibold text-slate-400 mb-1 font-['Inter',sans-serif]">
@@ -446,8 +519,12 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
                     }`}
                   >
                     <div className="flex items-center gap-2 w-full truncate">
-                      <FileText className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
-                      <span className="truncate capitalize font-['Inter',sans-serif]">{file.title}</span>
+                      <FileText
+                        className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`}
+                      />
+                      <span className="truncate capitalize font-['Inter',sans-serif]">
+                        {file.title}
+                      </span>
                     </div>
                     {file.folderPath && (
                       <span className="text-[10px] text-slate-400 pl-5 truncate font-normal">
@@ -485,27 +562,40 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
             isResizingSidebar ? 'bg-indigo-500/20' : 'hover:bg-indigo-500/10'
           }`}
         >
-          <div className={`w-1 h-12 rounded-full transition-all flex items-center justify-center ${
-            isResizingSidebar ? 'bg-indigo-600 h-20' : 'bg-slate-300 group-hover:bg-indigo-600'
-          }`}>
+          <div
+            className={`w-1 h-12 rounded-full transition-all flex items-center justify-center ${
+              isResizingSidebar
+                ? 'bg-indigo-600 h-20'
+                : 'bg-slate-300 group-hover:bg-indigo-600'
+            }`}
+          >
             <GripVertical className="w-2.5 h-2.5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         </div>
       </aside>
 
       {/* 🖥️ 4. ÁREA DE LEITURA (COM ALÇA DE LARGURA TOTALMENTE FUNCIONAL) */}
-      <div 
+      <div
         className="relative py-6 px-4 sm:px-8 md:px-10 transition-[margin-left] w-full max-w-full box-border"
         style={{
-          marginLeft: typeof window !== 'undefined' && window.innerWidth >= 768 ? `${sidebarWidth}px` : 0,
-          maxWidth: typeof window !== 'undefined' && window.innerWidth >= 768 ? `calc(100% - ${sidebarWidth}px)` : '100%',
+          marginLeft:
+            typeof window !== 'undefined' && window.innerWidth >= 768
+              ? `${sidebarWidth}px`
+              : 0,
+          maxWidth:
+            typeof window !== 'undefined' && window.innerWidth >= 768
+              ? `calc(100% - ${sidebarWidth}px)`
+              : '100%',
         }}
       >
         {/* Container do Conteúdo + Alça de Arraste na borda exata de contentWidth */}
-        <div 
+        <div
           className="relative w-full max-w-full transition-[max-width]"
           style={{
-            maxWidth: typeof window !== 'undefined' && window.innerWidth >= 768 ? `${contentWidth}px` : '100%',
+            maxWidth:
+              typeof window !== 'undefined' && window.innerWidth >= 768
+                ? `${contentWidth}px`
+                : '100%',
           }}
         >
           {/* Breadcrumbs de Leitura */}
@@ -543,9 +633,13 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
               isResizingContent ? 'bg-indigo-500/20' : 'hover:bg-indigo-500/10'
             }`}
           >
-            <div className={`w-1 h-12 rounded-full transition-all flex items-center justify-center ${
-              isResizingContent ? 'bg-indigo-600 h-20' : 'bg-slate-300 group-hover:bg-indigo-600'
-            }`}>
+            <div
+              className={`w-1 h-12 rounded-full transition-all flex items-center justify-center ${
+                isResizingContent
+                  ? 'bg-indigo-600 h-20'
+                  : 'bg-slate-300 group-hover:bg-indigo-600'
+              }`}
+            >
               <GripVertical className="w-2.5 h-2.5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
           </div>

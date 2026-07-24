@@ -16,7 +16,9 @@ interface QuestionAlternativeItemProps {
   onOpenZoom: (src: string) => void;
 }
 
-export const QuestionAlternativeItem: React.FC<QuestionAlternativeItemProps> = ({
+export const QuestionAlternativeItem: React.FC<
+  QuestionAlternativeItemProps
+> = ({
   chave,
   texto,
   imagem,
@@ -58,7 +60,10 @@ export const QuestionAlternativeItem: React.FC<QuestionAlternativeItemProps> = (
       const diffX = touchCurrentX - touchStartX;
       const diffY = touchCurrentY - touchStartY;
 
-      if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > SWIPE_THRESHOLD) {
+      if (
+        Math.abs(diffX) > Math.abs(diffY) &&
+        Math.abs(diffX) > SWIPE_THRESHOLD
+      ) {
         onToggleStrike();
       }
     }
@@ -73,7 +78,8 @@ export const QuestionAlternativeItem: React.FC<QuestionAlternativeItemProps> = (
     touchCurrentX !== null &&
     touchStartY !== null &&
     touchCurrentY !== null &&
-    Math.abs(touchCurrentX - touchStartX) > Math.abs(touchCurrentY - touchStartY);
+    Math.abs(touchCurrentX - touchStartX) >
+      Math.abs(touchCurrentY - touchStartY);
 
   const swipeOffset = isHorizontalSwipe ? touchCurrentX - touchStartX : 0;
 
@@ -86,7 +92,8 @@ export const QuestionAlternativeItem: React.FC<QuestionAlternativeItemProps> = (
 
   if (showFeedback && isSubmitted) {
     if (chave === gabarito) {
-      borderStyle = 'border-emerald-500 bg-emerald-50 text-emerald-900 font-medium';
+      borderStyle =
+        'border-emerald-500 bg-emerald-50 text-emerald-900 font-medium';
     } else if (isSelected && chave !== gabarito) {
       borderStyle = 'border-rose-500 bg-rose-50 text-rose-900';
     }
@@ -145,7 +152,9 @@ export const QuestionAlternativeItem: React.FC<QuestionAlternativeItemProps> = (
         </div>
 
         {/* Texto / Imagem */}
-        <div className={`flex-1 leading-relaxed ${isStruck ? 'line-through select-none' : ''}`}>
+        <div
+          className={`flex-1 leading-relaxed ${isStruck ? 'line-through select-none' : ''}`}
+        >
           {texto && <MathText text={texto} variant="alternativa" />}
           {imagem && (
             <div className="mt-1 max-w-xs">

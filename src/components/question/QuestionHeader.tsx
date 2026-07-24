@@ -13,7 +13,9 @@ export const QuestionHeader: React.FC<QuestionHeaderProps> = ({ question }) => {
           {question.taxonomia?.disciplina || 'Geral'}
         </span>
         {question.taxonomia?.bloco && <span>• {question.taxonomia.bloco}</span>}
-        {question.taxonomia?.topico && <span>• {question.taxonomia.topico}</span>}
+        {question.taxonomia?.topico && (
+          <span>• {question.taxonomia.topico}</span>
+        )}
       </div>
       <div className="flex items-center gap-2 shrink-0">
         {question.banca && (

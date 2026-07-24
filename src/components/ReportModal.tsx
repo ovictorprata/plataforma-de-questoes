@@ -8,11 +8,16 @@ interface ReportModalProps {
 }
 
 // ⚠️ Substitua com os dados do seu Google Forms
-const GOOGLE_FORM_ACTION_URL = 'https://docs.google.com/forms/d/e/SEU_ID_DO_FORM_AQUI/formResponse';
+const GOOGLE_FORM_ACTION_URL =
+  'https://docs.google.com/forms/d/e/SEU_ID_DO_FORM_AQUI/formResponse';
 const ENTRY_QUESTION_ID = 'entry.123456789'; // Campo do ID da questão
-const ENTRY_REASON = 'entry.987654321';      // Campo do Motivo/Descrição
+const ENTRY_REASON = 'entry.987654321'; // Campo do Motivo/Descrição
 
-export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, questionId }) => {
+export const ReportModal: React.FC<ReportModalProps> = ({
+  isOpen,
+  onClose,
+  questionId,
+}) => {
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -74,8 +79,12 @@ export const ReportModal: React.FC<ReportModalProps> = ({ isOpen, onClose, quest
         {isSuccess ? (
           <div className="py-8 text-center space-y-2">
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto animate-bounce" />
-            <p className="text-sm font-bold text-slate-800">Relato enviado com sucesso!</p>
-            <p className="text-xs text-slate-500">Obrigado por ajudar a melhorar a plataforma.</p>
+            <p className="text-sm font-bold text-slate-800">
+              Relato enviado com sucesso!
+            </p>
+            <p className="text-xs text-slate-500">
+              Obrigado por ajudar a melhorar a plataforma.
+            </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">

@@ -10,17 +10,22 @@ export interface AnalyticsData {
 export const useLocalAnalytics = () => {
   const [analytics, setAnalytics] = useState<AnalyticsData>(() => {
     const saved = localStorage.getItem('exam_platform_analytics');
-    const defaultData = { daily: {}, subjects: {}, global: { correct: 0, wrong: 0 }, answeredQuestions: [] };
-    
+    const defaultData = {
+      daily: {},
+      subjects: {},
+      global: { correct: 0, wrong: 0 },
+      answeredQuestions: [],
+    };
+
     if (!saved) return defaultData;
-    
+
     try {
       const parsed = JSON.parse(saved);
       return {
         daily: parsed.daily || {},
         subjects: parsed.subjects || {},
         global: parsed.global || { correct: 0, wrong: 0 },
-        answeredQuestions: parsed.answeredQuestions || []
+        answeredQuestions: parsed.answeredQuestions || [],
       };
     } catch {
       return defaultData;
@@ -31,7 +36,12 @@ export const useLocalAnalytics = () => {
     localStorage.setItem('exam_platform_analytics', JSON.stringify(analytics));
   }, [analytics]);
 
-  const logAnswer = (questionId: string, bloco: string, isCorrect: boolean, isAnulada: boolean = false) => {
+  const logAnswer = (
+    questionId: string,
+    bloco: string,
+    isCorrect: boolean,
+    isAnulada: boolean = false
+  ) => {
     const today = new Date().toLocaleDateString('pt-BR'); // Força estritamente DD/MM/AAAA
 
     setAnalytics((prev) => {
@@ -45,7 +55,7 @@ export const useLocalAnalytics = () => {
       if (isAnulada) {
         return {
           ...prev,
-          answeredQuestions: updatedAnswers
+          answeredQuestions: updatedAnswers,
         };
       }
 
@@ -72,7 +82,7 @@ export const useLocalAnalytics = () => {
           correct: currentGlobal.correct + (isCorrect ? 1 : 0),
           wrong: currentGlobal.wrong + (isCorrect ? 0 : 1),
         },
-        answeredQuestions: updatedAnswers
+        answeredQuestions: updatedAnswers,
       };
     });
   };

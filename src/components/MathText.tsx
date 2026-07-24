@@ -45,17 +45,31 @@ export const MathText: React.FC<MathTextProps> = ({
       {parts.map((part, index) => {
         if (part.startsWith('\\(') && part.endsWith('\\)')) {
           const math = part.slice(2, -2);
-          const html = katex.renderToString(math, { displayMode: false, throwOnError: false });
-          return <span key={index} dangerouslySetInnerHTML={{ __html: html }} />;
+          const html = katex.renderToString(math, {
+            displayMode: false,
+            throwOnError: false,
+          });
+          return (
+            <span key={index} dangerouslySetInnerHTML={{ __html: html }} />
+          );
         }
 
         if (part.startsWith('\\[') && part.endsWith('\\]')) {
           const math = part.slice(2, -2);
-          const html = katex.renderToString(math, { displayMode: true, throwOnError: false });
-          return <span key={index} dangerouslySetInnerHTML={{ __html: html }} />;
+          const html = katex.renderToString(math, {
+            displayMode: true,
+            throwOnError: false,
+          });
+          return (
+            <span key={index} dangerouslySetInnerHTML={{ __html: html }} />
+          );
         }
 
-        return <React.Fragment key={index}>{renderFormattedText(part)}</React.Fragment>;
+        return (
+          <React.Fragment key={index}>
+            {renderFormattedText(part)}
+          </React.Fragment>
+        );
       })}
     </span>
   );

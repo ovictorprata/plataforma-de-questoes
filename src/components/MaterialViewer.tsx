@@ -28,7 +28,9 @@ const EmbeddedFixationQuestion: React.FC<{
   questaoId: string;
   masterQuestions: Question[];
 }> = React.memo(({ questaoId, masterQuestions }) => {
-  const questionData = masterQuestions.find((q) => q.id.toLowerCase() === questaoId.toLowerCase());
+  const questionData = masterQuestions.find(
+    (q) => q.id.toLowerCase() === questaoId.toLowerCase()
+  );
 
   if (!questionData) {
     return (
@@ -106,117 +108,130 @@ export const MaterialViewer: React.FC<MaterialViewerProps> = ({
     return text;
   }, [content]);
 
-  const markdownComponents: Components = useMemo(() => ({
-    h1: ({ children }: CustomComponentProps) => (
-      <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight border-b border-slate-200 pb-3 mt-10 mb-8 leading-snug break-words">
-        {children}
-      </h1>
-    ),
-
-    h2: ({ children }: CustomComponentProps) => (
-      <h2 className="text-xl md:text-2xl font-bold text-slate-800 mt-14 mb-6 pt-2 leading-snug break-words">
-        {children}
-      </h2>
-    ),
-
-    h3: ({ children }: CustomComponentProps) => (
-      <h3 className="text-base md:text-lg font-bold text-indigo-600 uppercase tracking-wider mt-10 mb-4 break-words">
-        {children}
-      </h3>
-    ),
-
-    p: ({ children }: CustomComponentProps) => (
-      <p className="text-base md:text-lg text-slate-700 leading-relaxed my-4 font-['Inter',sans-serif] break-words">
-        {children}
-      </p>
-    ),
-    strong: ({ children }: CustomComponentProps) => (
-      <strong className="font-bold text-slate-900 font-['Inter',sans-serif]">{children}</strong>
-    ),
-    ul: ({ children }: CustomComponentProps) => (
-      <ul className="list-disc pl-6 space-y-2 text-base md:text-lg text-slate-700 my-4 font-['Inter',sans-serif] break-words">
-        {children}
-      </ul>
-    ),
-    ol: ({ children }: CustomComponentProps) => (
-      <ol className="list-decimal pl-6 space-y-2 text-base md:text-lg text-slate-700 my-4 font-['Inter',sans-serif] break-words">
-        {children}
-      </ol>
-    ),
-    td: ({ children }: CustomComponentProps) => (
-      <td className="px-5 py-3.5 leading-relaxed text-slate-700 align-middle break-words">
-        {children}
-      </td>
-    ),
-    hr: () => <hr className="my-8 border-slate-200/80" />,
-    img: ({ src, alt, style, width, ...props }: CustomImgProps & React.ImgHTMLAttributes<HTMLImageElement>) => {
-      const [cleanSrc, widthQuery] = (src || '').split('#w=');
-      
-      const finalStyle: React.CSSProperties = {
-        ...(style || {}),
-        width: widthQuery || style?.width || (width ? `${width}px` : undefined) || 'auto',
-        maxWidth: '100%',
-      };
-
-      return (
-        <figure className="my-6 flex flex-col items-center justify-center">
-          <img
-            src={cleanSrc}
-            alt={alt || ''}
-            style={finalStyle}
-            className="h-auto rounded-xl border border-slate-200/80 shadow-2xs max-w-full"
-            {...props}
-          />
-          {alt && (
-            <figcaption className="mt-2.5 text-center text-xs italic text-slate-500 font-['Inter',sans-serif]">
-              {alt}
-            </figcaption>
-          )}
-        </figure>
-      );
-    },
-    div: ({ 'data-questao-id': questaoId, ...props }: DivComponentProps) => {
-      if (questaoId) {
-        return (
-          <EmbeddedFixationQuestion
-            key={questaoId}
-            questaoId={questaoId}
-            masterQuestions={masterQuestions}
-          />
-        );
-      }
-
-      return <div {...props} />;
-    },
-
-    table: ({ children }: CustomComponentProps) => (
-      <div className="my-6 w-full overflow-hidden overflow-x-auto rounded-2xl border border-slate-200/90 shadow-2xs bg-white">
-        <table className="w-full border-collapse text-left text-xs sm:text-sm font-['Inter',sans-serif]">
+  const markdownComponents: Components = useMemo(
+    () => ({
+      h1: ({ children }: CustomComponentProps) => (
+        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight border-b border-slate-200 pb-3 mt-10 mb-8 leading-snug break-words">
           {children}
-        </table>
-      </div>
-    ),
-    thead: ({ children }: CustomComponentProps) => (
-      <thead className="bg-slate-100/80 border-b border-slate-200 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-600">
-        {children}
-      </thead>
-    ),
-    tbody: ({ children }: CustomComponentProps) => (
-      <tbody className="divide-y divide-slate-100 bg-white text-slate-700">
-        {children}
-      </tbody>
-    ),
-    tr: ({ children }: CustomComponentProps) => (
-      <tr className="hover:bg-slate-50/70 transition-colors">
-        {children}
-      </tr>
-    ),
-    th: ({ children }: CustomComponentProps) => (
-      <th className="px-5 py-3.5 font-extrabold text-slate-800">
-        {children}
-      </th>
-    ),
-  }), [masterQuestions]);
+        </h1>
+      ),
+
+      h2: ({ children }: CustomComponentProps) => (
+        <h2 className="text-xl md:text-2xl font-bold text-slate-800 mt-14 mb-6 pt-2 leading-snug break-words">
+          {children}
+        </h2>
+      ),
+
+      h3: ({ children }: CustomComponentProps) => (
+        <h3 className="text-base md:text-lg font-bold text-indigo-600 uppercase tracking-wider mt-10 mb-4 break-words">
+          {children}
+        </h3>
+      ),
+
+      p: ({ children }: CustomComponentProps) => (
+        <p className="text-base md:text-lg text-slate-700 leading-relaxed my-4 font-['Inter',sans-serif] break-words">
+          {children}
+        </p>
+      ),
+      strong: ({ children }: CustomComponentProps) => (
+        <strong className="font-bold text-slate-900 font-['Inter',sans-serif]">
+          {children}
+        </strong>
+      ),
+      ul: ({ children }: CustomComponentProps) => (
+        <ul className="list-disc pl-6 space-y-2 text-base md:text-lg text-slate-700 my-4 font-['Inter',sans-serif] break-words">
+          {children}
+        </ul>
+      ),
+      ol: ({ children }: CustomComponentProps) => (
+        <ol className="list-decimal pl-6 space-y-2 text-base md:text-lg text-slate-700 my-4 font-['Inter',sans-serif] break-words">
+          {children}
+        </ol>
+      ),
+      td: ({ children }: CustomComponentProps) => (
+        <td className="px-5 py-3.5 leading-relaxed text-slate-700 align-middle break-words">
+          {children}
+        </td>
+      ),
+      hr: () => <hr className="my-8 border-slate-200/80" />,
+      img: ({
+        src,
+        alt,
+        style,
+        width,
+        ...props
+      }: CustomImgProps & React.ImgHTMLAttributes<HTMLImageElement>) => {
+        const [cleanSrc, widthQuery] = (src || '').split('#w=');
+
+        const finalStyle: React.CSSProperties = {
+          ...(style || {}),
+          width:
+            widthQuery ||
+            style?.width ||
+            (width ? `${width}px` : undefined) ||
+            'auto',
+          maxWidth: '100%',
+        };
+
+        return (
+          <figure className="my-6 flex flex-col items-center justify-center">
+            <img
+              src={cleanSrc}
+              alt={alt || ''}
+              style={finalStyle}
+              className="h-auto rounded-xl border border-slate-200/80 shadow-2xs max-w-full"
+              {...props}
+            />
+            {alt && (
+              <figcaption className="mt-2.5 text-center text-xs italic text-slate-500 font-['Inter',sans-serif]">
+                {alt}
+              </figcaption>
+            )}
+          </figure>
+        );
+      },
+      div: ({ 'data-questao-id': questaoId, ...props }: DivComponentProps) => {
+        if (questaoId) {
+          return (
+            <EmbeddedFixationQuestion
+              key={questaoId}
+              questaoId={questaoId}
+              masterQuestions={masterQuestions}
+            />
+          );
+        }
+
+        return <div {...props} />;
+      },
+
+      table: ({ children }: CustomComponentProps) => (
+        <div className="my-6 w-full overflow-hidden overflow-x-auto rounded-2xl border border-slate-200/90 shadow-2xs bg-white">
+          <table className="w-full border-collapse text-left text-xs sm:text-sm font-['Inter',sans-serif]">
+            {children}
+          </table>
+        </div>
+      ),
+      thead: ({ children }: CustomComponentProps) => (
+        <thead className="bg-slate-100/80 border-b border-slate-200 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-600">
+          {children}
+        </thead>
+      ),
+      tbody: ({ children }: CustomComponentProps) => (
+        <tbody className="divide-y divide-slate-100 bg-white text-slate-700">
+          {children}
+        </tbody>
+      ),
+      tr: ({ children }: CustomComponentProps) => (
+        <tr className="hover:bg-slate-50/70 transition-colors">{children}</tr>
+      ),
+      th: ({ children }: CustomComponentProps) => (
+        <th className="px-5 py-3.5 font-extrabold text-slate-800">
+          {children}
+        </th>
+      ),
+    }),
+    [masterQuestions]
+  );
 
   return (
     <div className="w-full max-w-full font-['Inter',sans-serif] break-words">

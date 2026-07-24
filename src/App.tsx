@@ -37,7 +37,7 @@ const getSavedFilters = (): SavedFilters => {
       return JSON.parse(saved);
     }
   } catch (error) {
-    console.error("Erro ao carregar filtros salvos do localStorage:", error);
+    console.error('Erro ao carregar filtros salvos do localStorage:', error);
   }
   return {
     jsonFilter: [],
@@ -50,31 +50,62 @@ const getSavedFilters = (): SavedFilters => {
 
 export const App: React.FC = () => {
   const { analytics, logAnswer } = useLocalAnalytics();
-  
-  const [activeTab, setActiveTab] = useState<'banco' | 'simulado' | 'analytics' | 'materiais'>('banco');
-  
-  const [masterQuestions, setMasterQuestions] = useState<QuestionWithSource[]>([]);
+
+  const [activeTab, setActiveTab] = useState<
+    'banco' | 'simulado' | 'analytics' | 'materiais'
+  >('banco');
+
+  const [masterQuestions, setMasterQuestions] = useState<QuestionWithSource[]>(
+    []
+  );
   const [simuladoQuestions, setSimuladoQuestions] = useState<Question[]>([]);
   const [jsonFilesList, setJsonFilesList] = useState<string[]>([]);
-  
-  const [simuladoAnswers, setSimuladoAnswers] = useState<Record<string, string>>({});
-  const [isSimuladoSubmitted, setIsSimuladoSubmitted] = useState<boolean>(false);
-  const [simuladoStartTime, setSimuladoStartTime] = useState<number | null>(null);
+
+  const [simuladoAnswers, setSimuladoAnswers] = useState<
+    Record<string, string>
+  >({});
+  const [isSimuladoSubmitted, setIsSimuladoSubmitted] =
+    useState<boolean>(false);
+  const [simuladoStartTime, setSimuladoStartTime] = useState<number | null>(
+    null
+  );
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
 
-  const [tempJsonFilter, setTempJsonFilter] = useState<string[]>(() => getSavedFilters().jsonFilter);
-  const [tempDisciplinaFilter, setTempDisciplinaFilter] = useState<string[]>(() => getSavedFilters().disciplinaFilter);
-  const [tempBlocoFilter, setTempBlocoFilter] = useState<string[]>(() => getSavedFilters().blocoFilter);
-  const [tempAnoFilter, setTempAnoFilter] = useState<number[]>(() => getSavedFilters().anoFilter);
-  const [tempExcludeResolved, setTempExcludeResolved] = useState<boolean>(() => getSavedFilters().excludeResolved);
+  const [tempJsonFilter, setTempJsonFilter] = useState<string[]>(
+    () => getSavedFilters().jsonFilter
+  );
+  const [tempDisciplinaFilter, setTempDisciplinaFilter] = useState<string[]>(
+    () => getSavedFilters().disciplinaFilter
+  );
+  const [tempBlocoFilter, setTempBlocoFilter] = useState<string[]>(
+    () => getSavedFilters().blocoFilter
+  );
+  const [tempAnoFilter, setTempAnoFilter] = useState<number[]>(
+    () => getSavedFilters().anoFilter
+  );
+  const [tempExcludeResolved, setTempExcludeResolved] = useState<boolean>(
+    () => getSavedFilters().excludeResolved
+  );
 
-  const [appliedJsonFilter, setAppliedJsonFilter] = useState<string[]>(() => getSavedFilters().jsonFilter);
-  const [appliedDisciplinaFilter, setAppliedDisciplinaFilter] = useState<string[]>(() => getSavedFilters().disciplinaFilter);
-  const [appliedBlocoFilter, setAppliedBlocoFilter] = useState<string[]>(() => getSavedFilters().blocoFilter);
-  const [appliedAnoFilter, setAppliedAnoFilter] = useState<number[]>(() => getSavedFilters().anoFilter);
-  const [appliedExcludeResolved, setAppliedExcludeResolved] = useState<boolean>(() => getSavedFilters().excludeResolved);
-  
-  const [snapshotAnsweredQuestions, setSnapshotAnsweredQuestions] = useState<string[]>(() => {
+  const [appliedJsonFilter, setAppliedJsonFilter] = useState<string[]>(
+    () => getSavedFilters().jsonFilter
+  );
+  const [appliedDisciplinaFilter, setAppliedDisciplinaFilter] = useState<
+    string[]
+  >(() => getSavedFilters().disciplinaFilter);
+  const [appliedBlocoFilter, setAppliedBlocoFilter] = useState<string[]>(
+    () => getSavedFilters().blocoFilter
+  );
+  const [appliedAnoFilter, setAppliedAnoFilter] = useState<number[]>(
+    () => getSavedFilters().anoFilter
+  );
+  const [appliedExcludeResolved, setAppliedExcludeResolved] = useState<boolean>(
+    () => getSavedFilters().excludeResolved
+  );
+
+  const [snapshotAnsweredQuestions, setSnapshotAnsweredQuestions] = useState<
+    string[]
+  >(() => {
     return analytics.answeredQuestions || [];
   });
 
@@ -85,11 +116,15 @@ export const App: React.FC = () => {
     async function carregarTodasAsQuestoes() {
       try {
         const modulos = import.meta.glob<JsonModule>('./data/questoes/*.json');
-        const todasAsPromessas: Promise<{ mod: JsonModule; nomeLimpo: string }>[] = [];
+        const todasAsPromessas: Promise<{
+          mod: JsonModule;
+          nomeLimpo: string;
+        }>[] = [];
         const nomesArquivos: string[] = [];
 
         for (const caminho in modulos) {
-          const nomeLimpo = caminho.split('/').pop()?.replace('.json', '') || caminho;
+          const nomeLimpo =
+            caminho.split('/').pop()?.replace('.json', '') || caminho;
           nomesArquivos.push(nomeLimpo);
           todasAsPromessas.push(
             modulos[caminho]().then((mod) => ({ mod, nomeLimpo }))
@@ -98,14 +133,15 @@ export const App: React.FC = () => {
 
         setJsonFilesList(nomesArquivos);
         const resultados = await Promise.all(todasAsPromessas);
-        
-        const todasQuestoes: QuestionWithSource[] = resultados.flatMap(({ mod, nomeLimpo }) => 
-          mod.default.map((q) => ({ ...q, origemJson: nomeLimpo }))
+
+        const todasQuestoes: QuestionWithSource[] = resultados.flatMap(
+          ({ mod, nomeLimpo }) =>
+            mod.default.map((q) => ({ ...q, origemJson: nomeLimpo }))
         );
-        
+
         setMasterQuestions(todasQuestoes);
       } catch (error) {
-        console.error("Erro ao carregar dados dinamicamente:", error);
+        console.error('Erro ao carregar dados dinamicamente:', error);
       }
     }
     carregarTodasAsQuestoes();
@@ -121,7 +157,9 @@ export const App: React.FC = () => {
   const disciplinasDisponiveis = useMemo(() => {
     return Array.from(
       new Set(
-        masterQuestionsFilteredByJson.map((q) => q.taxonomia?.disciplina || 'Geral')
+        masterQuestionsFilteredByJson.map(
+          (q) => q.taxonomia?.disciplina || 'Geral'
+        )
       )
     );
   }, [masterQuestionsFilteredByJson]);
@@ -147,15 +185,25 @@ export const App: React.FC = () => {
     setTempJsonFilter(nextJsonFilter);
 
     if (nextJsonFilter.length > 0) {
-      const novasQuestoes = masterQuestions.filter((q) => nextJsonFilter.includes(q.origemJson));
-      
-      const validDisciplinas = new Set(novasQuestoes.map((q) => q.taxonomia?.disciplina || 'Geral'));
-      const validBlocos = new Set(novasQuestoes.map((q) => q.taxonomia?.bloco).filter(Boolean));
+      const novasQuestoes = masterQuestions.filter((q) =>
+        nextJsonFilter.includes(q.origemJson)
+      );
+
+      const validDisciplinas = new Set(
+        novasQuestoes.map((q) => q.taxonomia?.disciplina || 'Geral')
+      );
+      const validBlocos = new Set(
+        novasQuestoes.map((q) => q.taxonomia?.bloco).filter(Boolean)
+      );
       const validAnos = new Set(novasQuestoes.map((q) => q.ano));
 
-      setTempDisciplinaFilter((prev) => prev.filter((d) => validDisciplinas.has(d)));
+      setTempDisciplinaFilter((prev) =>
+        prev.filter((d) => validDisciplinas.has(d))
+      );
       setTempBlocoFilter((prev) => prev.filter((b) => validBlocos.has(b)));
-      setTempAnoFilter((prev) => prev.filter((a) => validAnos.has(a as number)));
+      setTempAnoFilter((prev) =>
+        prev.filter((a) => validAnos.has(a as number))
+      );
     }
   };
 
@@ -172,7 +220,9 @@ export const App: React.FC = () => {
       let filtradas = [...masterQuestions];
 
       if (appliedJsonFilter.length > 0) {
-        filtradas = filtradas.filter((q) => appliedJsonFilter.includes(q.origemJson));
+        filtradas = filtradas.filter((q) =>
+          appliedJsonFilter.includes(q.origemJson)
+        );
       }
       if (appliedDisciplinaFilter.length > 0) {
         filtradas = filtradas.filter((q) =>
@@ -215,7 +265,7 @@ export const App: React.FC = () => {
     setAppliedBlocoFilter(tempBlocoFilter);
     setAppliedAnoFilter(tempAnoFilter);
     setAppliedExcludeResolved(tempExcludeResolved);
-    
+
     setSnapshotAnsweredQuestions(analytics.answeredQuestions);
     setCurrentPage(1);
 
@@ -227,7 +277,10 @@ export const App: React.FC = () => {
       excludeResolved: tempExcludeResolved,
     };
 
-    localStorage.setItem(LOCAL_STORAGE_FILTERS_KEY, JSON.stringify(filtersToSave));
+    localStorage.setItem(
+      LOCAL_STORAGE_FILTERS_KEY,
+      JSON.stringify(filtersToSave)
+    );
   };
 
   const handleClearAllFilters = () => {
@@ -255,7 +308,7 @@ export const App: React.FC = () => {
     setIsSimuladoSubmitted(false);
     setSimuladoStartTime(Date.now());
     setElapsedSeconds(0);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
   const handleResetSimulado = () => {
@@ -286,7 +339,10 @@ export const App: React.FC = () => {
     }
 
     if (simuladoStartTime) {
-      const segundosDecorridos = Math.max(1, Math.round((Date.now() - simuladoStartTime) / 1000));
+      const segundosDecorridos = Math.max(
+        1,
+        Math.round((Date.now() - simuladoStartTime) / 1000)
+      );
       setElapsedSeconds(segundosDecorridos);
     }
 
@@ -295,14 +351,20 @@ export const App: React.FC = () => {
     simuladoQuestions.forEach((q) => {
       const resposta = simuladoAnswers[q.id];
       if (resposta) {
-        logAnswer(q.id, q.taxonomia?.disciplina || 'Geral', resposta === q.gabarito);
+        logAnswer(
+          q.id,
+          q.taxonomia?.disciplina || 'Geral',
+          resposta === q.gabarito
+        );
       }
     });
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleNavigate = (aba: 'banco' | 'simulado' | 'analytics' | 'materiais') => {
+  const handleNavigate = (
+    aba: 'banco' | 'simulado' | 'analytics' | 'materiais'
+  ) => {
     setActiveTab(aba);
     setCurrentPage(1);
   };
@@ -314,7 +376,10 @@ export const App: React.FC = () => {
 
   const indexLastQuestion = currentPage * pageSize;
   const indexFirstQuestion = indexLastQuestion - pageSize;
-  const currentQuestionsBatchSlice = displayQuestions.slice(indexFirstQuestion, indexLastQuestion);
+  const currentQuestionsBatchSlice = displayQuestions.slice(
+    indexFirstQuestion,
+    indexLastQuestion
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans antialiased overflow-x-hidden">
@@ -368,7 +433,12 @@ export const App: React.FC = () => {
                   <QuestionCard
                     key={question.id}
                     question={question}
-                    onAnswerLogged={(isCorrect, isAnulada, questionId, bloco) => {
+                    onAnswerLogged={(
+                      isCorrect,
+                      isAnulada,
+                      questionId,
+                      bloco
+                    ) => {
                       logAnswer(
                         questionId || question.id,
                         bloco || question.taxonomia?.bloco || 'Geral',
@@ -379,14 +449,15 @@ export const App: React.FC = () => {
                   />
                 );
               })}
-              
+
               {displayQuestions.length === 0 && (
                 <div className="bg-white border border-slate-200/80 rounded-2xl p-12 text-center space-y-2 shadow-sm">
                   <p className="text-slate-700 font-semibold text-sm">
                     Nenhuma questão encontrada
                   </p>
                   <p className="text-xs text-slate-400">
-                    Tente ajustar ou limpar os filtros para encontrar mais questões.
+                    Tente ajustar ou limpar os filtros para encontrar mais
+                    questões.
                   </p>
                 </div>
               )}
@@ -406,11 +477,11 @@ export const App: React.FC = () => {
         )}
 
         {/* ABA SIMULADO */}
-        {activeTab === 'simulado' && (
-          displayQuestions.length === 0 ? (
-            <ExamSetup 
-              questionsMasterList={masterQuestions} 
-              onGenerate={handleSimuladoGeneration} 
+        {activeTab === 'simulado' &&
+          (displayQuestions.length === 0 ? (
+            <ExamSetup
+              questionsMasterList={masterQuestions}
+              onGenerate={handleSimuladoGeneration}
             />
           ) : (
             <div className="space-y-4">
@@ -452,7 +523,9 @@ export const App: React.FC = () => {
                       isSimulado={true}
                       isSubmitted={isSimuladoSubmitted}
                       selectedAnswer={simuladoAnswers[question.id] || null}
-                      onSelectAnswer={(letra) => handleSelectSimuladoAnswer(question.id, letra)}
+                      onSelectAnswer={(letra) =>
+                        handleSelectSimuladoAnswer(question.id, letra)
+                      }
                     />
                   );
                 })}
@@ -461,7 +534,15 @@ export const App: React.FC = () => {
               {!isSimuladoSubmitted && (
                 <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 mt-6">
                   <span className="text-xs text-slate-500 font-medium">
-                    Progresso: <strong className="text-slate-800">{Object.keys(simuladoAnswers).length}</strong> de <strong className="text-slate-800">{simuladoQuestions.length}</strong> questões respondidas
+                    Progresso:{' '}
+                    <strong className="text-slate-800">
+                      {Object.keys(simuladoAnswers).length}
+                    </strong>{' '}
+                    de{' '}
+                    <strong className="text-slate-800">
+                      {simuladoQuestions.length}
+                    </strong>{' '}
+                    questões respondidas
                   </span>
 
                   <button
@@ -475,8 +556,7 @@ export const App: React.FC = () => {
                 </div>
               )}
             </div>
-          )
-        )}
+          ))}
 
         {/* ABA ANALYTICS */}
         {activeTab === 'analytics' && (
@@ -485,9 +565,7 @@ export const App: React.FC = () => {
 
         {/* 📚 ABA MATERIAIS */}
         {activeTab === 'materiais' && (
-          <MaterialsSidebarLayout
-            masterQuestions={masterQuestions}
-          />
+          <MaterialsSidebarLayout masterQuestions={masterQuestions} />
         )}
       </main>
 

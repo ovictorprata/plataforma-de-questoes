@@ -8,7 +8,8 @@ export const Footer: React.FC = () => {
         <div className="flex items-center gap-2">
           <Code2 className="w-4 h-4 text-indigo-400" />
           <span>
-            Desenvolvido por <strong className="text-white">Victor Prata</strong>
+            Desenvolvido por{' '}
+            <strong className="text-white">Victor Prata</strong>
           </span>
         </div>
 
