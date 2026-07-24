@@ -1,4 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from 'react-router-dom';
 import { Header } from './components/Header';
 import { FilterBankSection } from './components/FilterBankSection';
 import { ExamSetup } from './components/ExamSetup';
@@ -10,6 +17,7 @@ import { SimuladoTimer } from './components/SimuladoTimer';
 import { SimuladoResultSummary } from './components/SimuladoResultSummary';
 import { useLocalAnalytics } from './hooks/useLocalAnalytics';
 import { useBankFilters } from './hooks/useBankFilters';
+import { CheckCircle2, RefreshCw } from 'lucide-react';
 import type { Question } from './types/question';
 import { MaterialsSidebarLayout } from './components/MaterialsSidebarLayout';
 
@@ -21,11 +29,9 @@ interface JsonModule {
   default: Question[];
 }
 
-export const App: React.FC = () => {
+const AppContent: React.FC = () => {
+  const location = useLocation();
   const { analytics, logAnswer } = useLocalAnalytics();
-  const [activeTab, setActiveTab] = useState<
-    'banco' | 'simulado' | 'analytics' | 'materiais'
-  >('banco');
   const [masterQuestions, setMasterQuestions] = useState<QuestionWithSource[]>(
     []
   );
@@ -41,7 +47,7 @@ export const App: React.FC = () => {
   );
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
 
-  // 🎯 Custom Hook de Filtros
+  // Hook dos Filtros
   const bankFilters = useBankFilters(masterQuestions, analytics);
 
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -100,11 +106,6 @@ export const App: React.FC = () => {
     );
   }, [masterQuestions]);
 
-  const displayQuestions =
-    activeTab === 'simulado'
-      ? simuladoQuestions
-      : bankFilters.filteredQuestions;
-
   const handleSimuladoGeneration = (generatedQuestions: Question[]) => {
     setSimuladoQuestions(generatedQuestions);
     setSimuladoAnswers({});
@@ -143,148 +144,200 @@ export const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const currentQuestionsSlice = displayQuestions.slice(
+  const isMateriaisTab = location.pathname.startsWith('/materiais');
+  const currentQuestionsSlice = bankFilters.filteredQuestions.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans antialiased overflow-x-hidden">
-      <Header
-        activeTab={activeTab}
-        onNavigate={(aba) => {
-          setActiveTab(aba);
-          setCurrentPage(1);
-        }}
-      />
+      <Header />
 
       <main
-        className={`flex-1 w-full pb-12 ${activeTab === 'materiais' ? 'px-0 max-w-full' : 'max-w-3xl mx-auto px-3 md:px-4 py-6'}`}
+        className={`flex-1 w-full pb-12 ${isMateriaisTab ? 'px-0 max-w-full' : 'max-w-3xl mx-auto px-3 md:px-4 py-6'}`}
       >
-        {activeTab === 'banco' && (
-          <div className="space-y-4">
-            <FilterBankSection
-              jsonFilesList={jsonFilesList}
-              disciplinasDisponiveis={disciplinasDisponiveis}
-              questoesMapeamento={questoesMapeamento}
-              anosDisponiveis={anosDisponiveis}
-              {...bankFilters}
-              onApplyFilters={() => {
-                bankFilters.applyFilters();
-                setCurrentPage(1);
-              }}
-              onClearAllFilters={() => {
-                bankFilters.clearAllFilters();
-                setCurrentPage(1);
-              }}
-              totalQuestions={displayQuestions.length}
-              pageSize={pageSize}
-              onPageSizeChange={(size) => {
-                setPageSize(size);
-                setCurrentPage(1);
-              }}
-            />
+        <Routes>
+          {/* Redirecionamento da raiz / para /banco */}
+          <Route path="/" element={<Navigate to="/banco" replace />} />
 
-            <div className="space-y-4">
-              {currentQuestionsSlice.map((question) => (
-                <QuestionCard
-                  key={question.id}
-                  question={question}
-                  onAnswerLogged={(isCorrect, isAnulada, questionId, bloco) => {
-                    logAnswer(
-                      questionId || question.id,
-                      bloco || question.taxonomia?.bloco || 'Geral',
-                      isCorrect,
-                      isAnulada
-                    );
+          {/* 1. ROTA: BANCO DE QUESTÕES */}
+          <Route
+            path="/banco"
+            element={
+              <div className="space-y-4">
+                <FilterBankSection
+                  jsonFilesList={jsonFilesList}
+                  disciplinasDisponiveis={disciplinasDisponiveis}
+                  questoesMapeamento={questoesMapeamento}
+                  anosDisponiveis={anosDisponiveis}
+                  {...bankFilters}
+                  onApplyFilters={() => {
+                    bankFilters.applyFilters();
+                    setCurrentPage(1);
+                  }}
+                  onClearAllFilters={() => {
+                    bankFilters.clearAllFilters();
+                    setCurrentPage(1);
+                  }}
+                  totalQuestions={bankFilters.filteredQuestions.length}
+                  pageSize={pageSize}
+                  onPageSizeChange={(size) => {
+                    setPageSize(size);
+                    setCurrentPage(1);
                   }}
                 />
-              ))}
 
-              {displayQuestions.length === 0 && (
-                <div className="bg-white border border-slate-200/80 rounded-2xl p-12 text-center space-y-2 shadow-sm">
-                  <p className="text-slate-700 font-semibold text-sm">
-                    Nenhuma questão encontrada
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    Tente ajustar os filtros.
-                  </p>
+                <div className="space-y-4">
+                  {currentQuestionsSlice.map((question) => (
+                    <QuestionCard
+                      key={question.id}
+                      question={question}
+                      onAnswerLogged={(
+                        isCorrect,
+                        isAnulada,
+                        questionId,
+                        bloco
+                      ) => {
+                        logAnswer(
+                          questionId || question.id,
+                          bloco || question.taxonomia?.bloco || 'Geral',
+                          isCorrect,
+                          isAnulada
+                        );
+                      }}
+                    />
+                  ))}
+
+                  {bankFilters.filteredQuestions.length === 0 && (
+                    <div className="bg-white border border-slate-200/80 rounded-2xl p-12 text-center space-y-2 shadow-sm">
+                      <p className="text-slate-700 font-semibold text-sm">
+                        Nenhuma questão encontrada
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        Tente ajustar ou limpar os filtros.
+                      </p>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
 
-            {displayQuestions.length > 0 && (
-              <Pagination
-                currentPage={currentPage}
-                totalQuestions={displayQuestions.length}
-                pageSize={pageSize}
-                onPageChange={(p) => {
-                  setCurrentPage(p);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                onPageSizeChange={setPageSize}
-                mode="navigationOnly"
-              />
-            )}
-          </div>
-        )}
-
-        {activeTab === 'simulado' &&
-          (displayQuestions.length === 0 ? (
-            <ExamSetup
-              questionsMasterList={masterQuestions}
-              onGenerate={handleSimuladoGeneration}
-            />
-          ) : (
-            <div className="space-y-4">
-              {!isSimuladoSubmitted && (
-                <SimuladoTimer
-                  totalQuestions={simuladoQuestions.length}
-                  onResetSimulado={handleResetSimulado}
-                />
-              )}
-              {isSimuladoSubmitted && (
-                <SimuladoResultSummary
-                  questions={simuladoQuestions}
-                  answers={simuladoAnswers}
-                  tempoTotalSegundos={elapsedSeconds}
-                />
-              )}
-              <div className="space-y-4">
-                {displayQuestions.map((q) => (
-                  <QuestionCard
-                    key={q.id}
-                    question={q}
-                    isSimulado={true}
-                    isSubmitted={isSimuladoSubmitted}
-                    selectedAnswer={simuladoAnswers[q.id] || null}
-                    onSelectAnswer={(letra) =>
-                      setSimuladoAnswers((prev) => ({ ...prev, [q.id]: letra }))
-                    }
+                {bankFilters.filteredQuestions.length > 0 && (
+                  <Pagination
+                    currentPage={currentPage}
+                    totalQuestions={bankFilters.filteredQuestions.length}
+                    pageSize={pageSize}
+                    onPageChange={(p) => {
+                      setCurrentPage(p);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    onPageSizeChange={setPageSize}
+                    mode="navigationOnly"
                   />
-                ))}
+                )}
               </div>
-              {!isSimuladoSubmitted && (
-                <button
-                  type="button"
-                  onClick={handleFinishSimulado}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-3 rounded-xl transition-all"
-                >
-                  Finalizar e Ver Resultado
-                </button>
-              )}
-            </div>
-          ))}
+            }
+          />
 
-        {activeTab === 'analytics' && (
-          <AnalyticsDashboard analytics={analytics} />
-        )}
-        {activeTab === 'materiais' && (
-          <MaterialsSidebarLayout masterQuestions={masterQuestions} />
-        )}
+          {/* 2. ROTA: SIMULADO */}
+          <Route
+            path="/simulado"
+            element={
+              simuladoQuestions.length === 0 ? (
+                <ExamSetup
+                  questionsMasterList={masterQuestions}
+                  onGenerate={handleSimuladoGeneration}
+                />
+              ) : (
+                <div className="space-y-4">
+                  {!isSimuladoSubmitted && (
+                    <SimuladoTimer
+                      totalQuestions={simuladoQuestions.length}
+                      onResetSimulado={handleResetSimulado}
+                    />
+                  )}
+
+                  {isSimuladoSubmitted && (
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={handleResetSimulado}
+                        className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-sm"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>Gerar novo simulado</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {isSimuladoSubmitted && (
+                    <SimuladoResultSummary
+                      questions={simuladoQuestions}
+                      answers={simuladoAnswers}
+                      tempoTotalSegundos={elapsedSeconds}
+                    />
+                  )}
+
+                  <div className="space-y-4">
+                    {simuladoQuestions.map((q) => (
+                      <QuestionCard
+                        key={q.id}
+                        question={q}
+                        isSimulado={true}
+                        isSubmitted={isSimuladoSubmitted}
+                        selectedAnswer={simuladoAnswers[q.id] || null}
+                        onSelectAnswer={(letra) =>
+                          setSimuladoAnswers((prev) => ({
+                            ...prev,
+                            [q.id]: letra,
+                          }))
+                        }
+                      />
+                    ))}
+                  </div>
+
+                  {!isSimuladoSubmitted && (
+                    <button
+                      type="button"
+                      onClick={handleFinishSimulado}
+                      className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-3 rounded-xl transition-all shadow-sm"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Finalizar e Ver Resultado</span>
+                    </button>
+                  )}
+                </div>
+              )
+            }
+          />
+
+          {/* 3. ROTA: DASHBOARD / ANALYTICS */}
+          <Route
+            path="/dashboard"
+            element={<AnalyticsDashboard analytics={analytics} />}
+          />
+
+          {/* 4. ROTA: MATERIAIS */}
+          <Route
+            path="/materiais"
+            element={
+              <MaterialsSidebarLayout masterQuestions={masterQuestions} />
+            }
+          />
+
+          {/* Redirecionamento padrão para URLs desconhecidas */}
+          <Route path="*" element={<Navigate to="/banco" replace />} />
+        </Routes>
       </main>
 
       <Footer />
     </div>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <BrowserRouter basename="/plataforma-de-questoes">
+      <AppContent />
+    </BrowserRouter>
   );
 };

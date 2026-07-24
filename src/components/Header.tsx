@@ -1,132 +1,77 @@
-import React, { useState } from 'react';
-import { BookOpen, HelpCircle, Layers, BarChart3, Menu, X } from 'lucide-react';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { BookOpen, Layers, BarChart3, FileText } from 'lucide-react';
 
-interface HeaderProps {
-  activeTab: 'banco' | 'simulado' | 'analytics' | 'materiais';
-  onNavigate: (aba: 'banco' | 'simulado' | 'analytics' | 'materiais') => void;
-}
+export const Header: React.FC = () => {
+  const location = useLocation();
+  const currentPath = location.pathname;
 
-export const Header: React.FC<HeaderProps> = ({ activeTab, onNavigate }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const handleSelectTab = (
-    aba: 'banco' | 'simulado' | 'analytics' | 'materiais'
-  ) => {
-    onNavigate(aba);
-    setIsMenuOpen(false);
-  };
+  const navItems = [
+    {
+      path: '/banco',
+      label: 'Banco de Questões',
+      icon: Layers,
+      isActive:
+        currentPath === '/banco' || currentPath === '/' || currentPath === '',
+    },
+    {
+      path: '/simulado',
+      label: 'Simulado',
+      icon: BookOpen,
+      isActive: currentPath.startsWith('/simulado'),
+    },
+    {
+      path: '/dashboard',
+      label: 'Analytics',
+      icon: BarChart3,
+      isActive: currentPath.startsWith('/dashboard'),
+    },
+    {
+      path: '/materiais',
+      label: 'Materiais',
+      icon: FileText,
+      isActive: currentPath.startsWith('/materiais'),
+    },
+  ];
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-      <div className="max-w-3xl w-full mx-auto px-4">
+    <header className="bg-white border-b border-slate-200/80 sticky top-0 z-40 font-['Inter',sans-serif]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-indigo-600" />
-            <h1 className="text-base font-bold text-slate-900 tracking-tight">
-              Simulado Pro
-            </h1>
-          </div>
+          {/* LOGO DA PLATAFORMA */}
+          <Link to="/banco" className="flex items-center gap-2">
+            <div className="p-2 bg-indigo-600 text-white rounded-xl shadow-xs">
+              <BookOpen className="w-5 h-5" />
+            </div>
+            <span className="font-extrabold text-slate-900 text-base tracking-tight">
+              Simulado<span className="text-indigo-600">Pro</span>
+            </span>
+          </Link>
 
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 md:hidden transition-colors"
-          >
-            {isMenuOpen ? (
-              <X className="w-5 h-5" />
-            ) : (
-              <Menu className="w-5 h-5" />
-            )}
-          </button>
-
-          <nav className="hidden md:flex gap-6 text-xs font-medium h-full items-center">
-            <button
-              onClick={() => handleSelectTab('banco')}
-              className={`h-full flex items-center gap-1.5 border-b-2 transition-all px-1 ${
-                activeTab === 'banco'
-                  ? 'border-indigo-600 text-indigo-600 font-bold'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <HelpCircle className="w-4 h-4" /> Home (Banco)
-            </button>
-            <button
-              onClick={() => handleSelectTab('simulado')}
-              className={`h-full flex items-center gap-1.5 border-b-2 transition-all px-1 ${
-                activeTab === 'simulado'
-                  ? 'border-indigo-600 text-indigo-600 font-bold'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <Layers className="w-4 h-4" /> Simulado
-            </button>
-            <button
-              onClick={() => handleSelectTab('analytics')}
-              className={`h-full flex items-center gap-1.5 border-b-2 transition-all px-1 ${
-                activeTab === 'analytics'
-                  ? 'border-indigo-600 text-indigo-600 font-bold'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <BarChart3 className="w-4 h-4" /> Meu Desempenho
-            </button>
-            <button
-              onClick={() => handleSelectTab('materiais')}
-              className={`h-full flex items-center gap-1.5 border-b-2 transition-all px-1 ${
-                activeTab === 'materiais'
-                  ? 'border-indigo-600 text-indigo-600 font-bold'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              <BookOpen className="w-4 h-4" /> Materiais
-            </button>
+          {/* MENU DE NAVEGAÇÃO DE ROTAS */}
+          <nav className="flex items-center gap-1 sm:gap-2">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                    item.isActive
+                      ? 'bg-indigo-50 text-indigo-700 shadow-2xs border border-indigo-100/80'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
+                  }`}
+                >
+                  <Icon
+                    className={`w-4 h-4 ${item.isActive ? 'text-indigo-600' : 'text-slate-400'}`}
+                  />
+                  <span className="hidden md:inline">{item.label}</span>
+                </Link>
+              );
+            })}
           </nav>
         </div>
       </div>
-
-      {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-slate-100 px-4 py-2 space-y-1 shadow-inner">
-          <button
-            onClick={() => handleSelectTab('banco')}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === 'banco'
-                ? 'bg-indigo-50 text-indigo-700'
-                : 'text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            <HelpCircle className="w-4 h-4" /> Home (Banco)
-          </button>
-          <button
-            onClick={() => handleSelectTab('simulado')}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === 'simulado'
-                ? 'bg-indigo-50 text-indigo-700'
-                : 'text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            <Layers className="w-4 h-4" /> Simulado
-          </button>
-          <button
-            onClick={() => handleSelectTab('analytics')}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === 'analytics'
-                ? 'bg-indigo-50 text-indigo-700'
-                : 'text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            <BarChart3 className="w-4 h-4" /> Meu Desempenho
-          </button>
-          <button
-            onClick={() => handleSelectTab('materiais')}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-              activeTab === 'materiais'
-                ? 'bg-indigo-50 text-indigo-700'
-                : 'text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            <BookOpen className="w-4 h-4" /> Materiais
-          </button>
-        </div>
-      )}
     </header>
   );
 };
