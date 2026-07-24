@@ -97,10 +97,11 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
   // 🎯 Estado para calcular a sobreposição com o Footer
   const [footerOverlap, setFooterOverlap] = useState<number>(0);
 
-  // Larguras no Desktop
+  // Largura da Sidebar Desktop
   const [sidebarWidth, setSidebarWidth] = useState<number>(280);
   const [isResizingSidebar, setIsResizingSidebar] = useState<boolean>(false);
 
+  // Largura do Conteúdo Escolhida pelo Usuário
   const [contentWidth, setContentWidth] = useState<number>(850);
   const [isResizingContent, setIsResizingContent] = useState<boolean>(false);
 
@@ -210,7 +211,7 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
     });
   }, [currentActiveId, flatFiles]);
 
-  // Arraste da Sidebar
+  // 🎯 Arraste da Sidebar
   const handleSidebarPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -220,7 +221,7 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
   const handleSidebarPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (isResizingSidebar) {
       const newWidth = e.clientX;
-      if (newWidth >= 200 && newWidth <= 450) {
+      if (newWidth >= 200 && newWidth <= 420) {
         setSidebarWidth(newWidth);
       }
     }
@@ -233,7 +234,7 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
     }
   }, [isResizingSidebar]);
 
-  // Arraste do Conteúdo
+  // 🎯 Arraste da Largura do Conteúdo (Corrigido para capturar o movimento relativo da tela)
   const handleContentPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -242,12 +243,13 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
 
   const handleContentPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (isResizingContent) {
-      const newWidth = e.clientX - sidebarWidth;
-      const maxAllowedWidth = window.innerWidth - sidebarWidth - 40;
+      const containerLeft = containerRef.current?.getBoundingClientRect().left || 0;
+      const calculatedWidth = e.clientX - containerLeft - sidebarWidth - 40;
+      const maxAllowedWidth = window.innerWidth - sidebarWidth - 60;
 
-      if (newWidth >= 450 && newWidth <= maxAllowedWidth) {
-        setContentWidth(newWidth);
-      } else if (newWidth > maxAllowedWidth) {
+      if (calculatedWidth >= 400 && calculatedWidth <= maxAllowedWidth) {
+        setContentWidth(calculatedWidth);
+      } else if (calculatedWidth > maxAllowedWidth) {
         setContentWidth(maxAllowedWidth);
       }
     }
@@ -386,7 +388,7 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
         </div>
       )}
 
-      {/* 🖥️ 3. MENU LATERAL DESKTOP (FIXED COM ALTURA DINÂMICA QUE RESPEITA O FOOTER) */}
+      {/* 🖥️ 3. MENU LATERAL DESKTOP (FIXO) */}
       <aside 
         style={{ 
           width: `${sidebarWidth}px`,
@@ -491,45 +493,64 @@ export const MaterialsSidebarLayout: React.FC<MaterialsSidebarLayoutProps> = ({
         </div>
       </aside>
 
-      {/* 🖥️ 4. ÁREA DE LEITURA (ALINHAMENTO IMPECÁVEL NO TOPO) */}
-     <div 
-        className="relative w-full md:w-auto shrink-0 px-3 sm:px-6 md:pl-40 md:pr-10 py-4 md:py-6 min-w-0 max-w-full"
+      {/* 🖥️ 4. ÁREA DE LEITURA (COM ALÇA DE LARGURA TOTALMENTE FUNCIONAL) */}
+      <div 
+        className="relative py-6 px-4 sm:px-8 md:px-10 transition-[margin-left] w-full max-w-full box-border"
         style={{
-          marginLeft: typeof window !== 'undefined' && window.innerWidth >= 768 ? `${sidebarWidth}px` : undefined,
-          width: typeof window !== 'undefined' && window.innerWidth >= 768 ? `${contentWidth}px` : undefined,
+          marginLeft: typeof window !== 'undefined' && window.innerWidth >= 768 ? `${sidebarWidth}px` : 0,
+          maxWidth: typeof window !== 'undefined' && window.innerWidth >= 768 ? `calc(100% - ${sidebarWidth}px)` : '100%',
         }}
       >
-        <main className="max-w-full w-full overflow-hidden">
-          {materialContent ? (
-            <MaterialViewer
-              content={materialContent}
-              masterQuestions={masterQuestions}
-            />
-          ) : (
-            <div className="flex items-center justify-center h-64 text-slate-400 text-xs font-['Inter',sans-serif]">
-              Selecione um material no menu lateral para iniciar a leitura.
-            </div>
-          )}
-        </main>
-
-        {/* ALÇA DE ARRASTE DO CONTEÚDO (APENAS DESKTOP) */}
-        <div
-          onPointerDown={handleContentPointerDown}
-          onPointerMove={handleContentPointerMove}
-          onPointerUp={handleContentPointerUp}
-          title="Clique e arraste para redimensionar a largura do texto"
-          className={`hidden md:flex absolute top-0 right-0 w-3 h-full cursor-col-resize items-center justify-center group z-20 ${
-            isResizingContent ? 'bg-indigo-500/20' : 'hover:bg-indigo-500/10'
-          }`}
+        {/* Container do Conteúdo + Alça de Arraste na borda exata de contentWidth */}
+        <div 
+          className="relative w-full max-w-full transition-[max-width]"
+          style={{
+            maxWidth: typeof window !== 'undefined' && window.innerWidth >= 768 ? `${contentWidth}px` : '100%',
+          }}
         >
-          <div className={`w-1 h-12 rounded-full transition-all flex items-center justify-center ${
-            isResizingContent ? 'bg-indigo-600 h-20' : 'bg-slate-300 group-hover:bg-indigo-600'
-          }`}>
-            <GripVertical className="w-2.5 h-2.5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+          {/* Breadcrumbs de Leitura */}
+          <div className="mb-6 pb-3 border-b border-slate-200/60 font-['Inter',sans-serif]">
+            <div className="flex items-center gap-2 text-xs font-medium text-slate-400 truncate">
+              <BookOpen className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+              <span className="truncate">
+                {currentActiveId && flatFiles[currentActiveId]?.folderPath
+                  ? `${flatFiles[currentActiveId].folderPath} / ${flatFiles[currentActiveId].title}`
+                  : 'Material de Estudo'}
+              </span>
+            </div>
+          </div>
+
+          <main className="w-full min-w-0 overflow-x-hidden">
+            {materialContent ? (
+              <MaterialViewer
+                content={materialContent}
+                masterQuestions={masterQuestions}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-64 text-slate-400 text-xs font-['Inter',sans-serif]">
+                Selecione um material no menu lateral para iniciar a leitura.
+              </div>
+            )}
+          </main>
+
+          {/* 🎯 ALÇA DE ARRASTE DA LARGURA DO CONTEÚDO (Posicionada exatamente na borda direita do bloco de texto) */}
+          <div
+            onPointerDown={handleContentPointerDown}
+            onPointerMove={handleContentPointerMove}
+            onPointerUp={handleContentPointerUp}
+            title="Clique e arraste para redimensionar a largura da página de leitura"
+            className={`hidden md:flex absolute top-0 -right-5 w-4 h-full cursor-col-resize items-center justify-center group z-20 ${
+              isResizingContent ? 'bg-indigo-500/20' : 'hover:bg-indigo-500/10'
+            }`}
+          >
+            <div className={`w-1 h-12 rounded-full transition-all flex items-center justify-center ${
+              isResizingContent ? 'bg-indigo-600 h-20' : 'bg-slate-300 group-hover:bg-indigo-600'
+            }`}>
+              <GripVertical className="w-2.5 h-2.5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
           </div>
         </div>
       </div>
-        </div>
-    
+    </div>
   );
 };

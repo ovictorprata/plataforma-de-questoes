@@ -48,10 +48,10 @@
 * 🔴 **Única Exceção:** Se os pais estrangeiros estiverem **a serviço do seu próprio país** de origem.
 
 👣 **PEGADINHAS DE SOLO:**
-* Pais espanhóis a passeio no Brasil $\rightarrow$ Filho é **BR NATO**.
-* Pais espanhóis a serviço da Espanha no Brasil $\rightarrow$ Filho é **ESTRANGEIRO**.
-* Pais espanhóis a serviço da França no Brasil $\rightarrow$ Filho é **BR NATO** (não estão a serviço do seu próprio país!).
-* Pai americano a serviço dos EUA + Mãe brasileira no Brasil $\rightarrow$ Filho é **BR NATO** (basta 1 dos pais ser brasileiro!).
+* Pais espanhóis a passeio no Brasil → Filho é **BR NATO**.
+* Pais espanhóis a serviço da Espanha no Brasil → Filho é **ESTRANGEIRO**.
+* Pais espanhóis a serviço da França no Brasil → Filho é **BR NATO** (não estão a serviço do seu próprio país!).
+* Pai americano a serviço dos EUA + Mãe brasileira no Brasil → Filho é **BR NATO** (basta 1 dos pais ser brasileiro!).
 
 ---
 

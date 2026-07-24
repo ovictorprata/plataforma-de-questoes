@@ -108,26 +108,25 @@ export const MaterialViewer: React.FC<MaterialViewerProps> = ({
 
   const markdownComponents: Components = useMemo(() => ({
     h1: ({ children }: CustomComponentProps) => (
-      <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight border-b border-slate-200 pb-3 mt-12 mb-8">
+      <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight border-b border-slate-200 pb-3 mt-10 mb-8 leading-snug break-words">
         {children}
       </h1>
     ),
 
-    // 🎯 H2: Títulos de Seção (Aumentado de mt-12 para mt-16 = 64px)
     h2: ({ children }: CustomComponentProps) => (
-      <h2 className="text-xl font-bold text-slate-800 mt-16 mb-6 pt-2">
+      <h2 className="text-xl md:text-2xl font-bold text-slate-800 mt-14 mb-6 pt-2 leading-snug break-words">
         {children}
       </h2>
     ),
 
-    // 🎯 H3: Subtítulos (Aumentado de mt-8 para mt-12 = 48px)
     h3: ({ children }: CustomComponentProps) => (
-      <h3 className="text-base font-bold text-indigo-600 uppercase tracking-wider mt-12 mb-4">
+      <h3 className="text-base md:text-lg font-bold text-indigo-600 uppercase tracking-wider mt-10 mb-4 break-words">
         {children}
       </h3>
     ),
+
     p: ({ children }: CustomComponentProps) => (
-      <p className="text-base text-slate-700 leading-relaxed my-4 font-['Inter',sans-serif]">
+      <p className="text-base md:text-lg text-slate-700 leading-relaxed my-4 font-['Inter',sans-serif] break-words">
         {children}
       </p>
     ),
@@ -135,14 +134,19 @@ export const MaterialViewer: React.FC<MaterialViewerProps> = ({
       <strong className="font-bold text-slate-900 font-['Inter',sans-serif]">{children}</strong>
     ),
     ul: ({ children }: CustomComponentProps) => (
-      <ul className="list-disc pl-6 space-y-2 text-base text-slate-700 my-4 font-['Inter',sans-serif]">
+      <ul className="list-disc pl-6 space-y-2 text-base md:text-lg text-slate-700 my-4 font-['Inter',sans-serif] break-words">
         {children}
       </ul>
     ),
     ol: ({ children }: CustomComponentProps) => (
-      <ol className="list-decimal pl-6 space-y-2 text-base text-slate-700 my-4 font-['Inter',sans-serif]">
+      <ol className="list-decimal pl-6 space-y-2 text-base md:text-lg text-slate-700 my-4 font-['Inter',sans-serif] break-words">
         {children}
       </ol>
+    ),
+    td: ({ children }: CustomComponentProps) => (
+      <td className="px-5 py-3.5 leading-relaxed text-slate-700 align-middle break-words">
+        {children}
+      </td>
     ),
     hr: () => <hr className="my-8 border-slate-200/80" />,
     img: ({ src, alt, style, width, ...props }: CustomImgProps & React.ImgHTMLAttributes<HTMLImageElement>) => {
@@ -160,7 +164,7 @@ export const MaterialViewer: React.FC<MaterialViewerProps> = ({
             src={cleanSrc}
             alt={alt || ''}
             style={finalStyle}
-            className="h-auto rounded-xl border border-slate-200/80 shadow-2xs"
+            className="h-auto rounded-xl border border-slate-200/80 shadow-2xs max-w-full"
             {...props}
           />
           {alt && (
@@ -185,16 +189,15 @@ export const MaterialViewer: React.FC<MaterialViewerProps> = ({
       return <div {...props} />;
     },
 
-    // 🎯 ESTILIZAÇÃO PREMIUM DE TABELAS (RESPONSIVA E COM DESIGN SYSTEM)
     table: ({ children }: CustomComponentProps) => (
       <div className="my-6 w-full overflow-hidden overflow-x-auto rounded-2xl border border-slate-200/90 shadow-2xs bg-white">
-        <table className="w-full border-collapse text-left text-xs font-['Inter',sans-serif]">
+        <table className="w-full border-collapse text-left text-xs sm:text-sm font-['Inter',sans-serif]">
           {children}
         </table>
       </div>
     ),
     thead: ({ children }: CustomComponentProps) => (
-      <thead className="bg-slate-100/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+      <thead className="bg-slate-100/80 border-b border-slate-200 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-600">
         {children}
       </thead>
     ),
@@ -213,15 +216,10 @@ export const MaterialViewer: React.FC<MaterialViewerProps> = ({
         {children}
       </th>
     ),
-    td: ({ children }: CustomComponentProps) => (
-      <td className="px-5 py-3.5 leading-relaxed text-slate-700 align-middle">
-        {children}
-      </td>
-    ),
   }), [masterQuestions]);
 
   return (
-    <div className="w-full font-['Inter',sans-serif]">
+    <div className="w-full max-w-full font-['Inter',sans-serif] break-words">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
